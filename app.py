@@ -191,33 +191,39 @@ def fig_b2_m2_comarca():
     disp = load("b2_dispersion_comarcas.csv").set_index("provincia")
     tope = prov["tope_vivienda"].iloc[0]
     orden = prov.sort_values("precio_m2_2024", ascending=False)["territorio"].tolist()
-    m2_mas = [tope / disp.loc[p, "precio_minimo"] for p in orden]
-    m2_menos = [tope / disp.loc[p, "precio_maximo"] for p in orden]
-    media = [prov.loc[prov["territorio"] == p, "tope_m2_2024"].values[0] for p in orden]
-    nom_mas = [disp.loc[p, "comarca_minimo"] for p in orden]
-    nom_menos = [disp.loc[p, "comarca_maximo"] for p in orden]
-    cols = [PROV[p] for p in orden]
     fig = go.Figure()
-    fig.add_bar(x=orden, y=m2_mas, marker=dict(color=cols), showlegend=False,
-                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_mas, m2_mas)], textposition="outside",
-                textfont=dict(size=10, color=TEXT), customdata=nom_mas,
-                hovertemplate="%{x} · %{customdata} (más barata): %{y:.0f} m²<extra></extra>")
-    fig.add_bar(x=orden, y=m2_menos, marker=dict(color=cols, opacity=0.45), showlegend=False,
-                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_menos, m2_menos)], textposition="outside",
-                textfont=dict(size=10, color=TEXT), customdata=nom_menos,
-                hovertemplate="%{x} · %{customdata} (más cara): %{y:.0f} m²<extra></extra>")
-    fig.add_trace(go.Scatter(x=orden, y=media, mode="markers", showlegend=False,
-                             marker=dict(symbol="line-ew", color=TEXT, size=46, line=dict(width=1.6, color=TEXT)),
-                             hovertemplate="%{x} · media provincial: %{y:.0f} m²<extra></extra>"))
-    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO), name="Comarca más barata (más m²)")
-    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO, opacity=0.45), name="Comarca más cara (menos m²)")
-    fig.add_trace(go.Scatter(x=[None], y=[None], mode="lines", line=dict(color=TEXT, width=1.6),
+    for p in orden:
+        d = disp.loc[p]
+        m2_mas = tope / d["precio_minimo"]     # comarca más barata → más m²
+        m2_menos = tope / d["precio_maximo"]   # comarca más cara → menos m²
+        media = prov.loc[prov["territorio"] == p, "tope_m2_2024"].values[0]
+        fig.add_trace(go.Scatter(x=[m2_menos, m2_mas], y=[p, p], mode="lines",
+                                 line=dict(color=PROV[p], width=3), showlegend=False, hoverinfo="skip"))
+        fig.add_trace(go.Scatter(x=[m2_menos], y=[p], mode="markers+text",
+                                 marker=dict(color=PROV[p], size=14, opacity=0.4),
+                                 text=[f"{d['comarca_maximo']} ({m2_menos:.0f} m²)"], textposition="top center",
+                                 textfont=dict(size=10, color=TEXT), showlegend=False,
+                                 hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): {m2_menos:.0f} m²<extra></extra>"))
+        fig.add_trace(go.Scatter(x=[m2_mas], y=[p], mode="markers+text",
+                                 marker=dict(color=PROV[p], size=15),
+                                 text=[f"{d['comarca_minimo']} ({m2_mas:.0f} m²)"], textposition="top center",
+                                 textfont=dict(size=10, color=TEXT), showlegend=False,
+                                 hovertemplate=f"{p} · {d['comarca_minimo']} (más barata): {m2_mas:.0f} m²<extra></extra>"))
+        fig.add_trace(go.Scatter(x=[media], y=[p], mode="markers",
+                                 marker=dict(symbol="line-ns", color=TEXT, size=16, line=dict(width=2, color=TEXT)),
+                                 showlegend=False, hovertemplate=f"{p} · media provincial: {media:.0f} m²<extra></extra>"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=14),
+                             name="Comarca más barata (más m²)"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=14, opacity=0.4),
+                             name="Comarca más cara (menos m²)"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
+                             marker=dict(symbol="line-ns", color=TEXT, size=14, line=dict(width=2, color=TEXT)),
                              name="Media provincial"))
-    fig.update_layout(barmode="group", bargap=0.4, bargroupgap=0.12,
-                      yaxis_title="m² comprables con el tope (250.000 €)",
-                      legend=dict(orientation="h", y=-0.14, x=0))
-    fig.update_yaxes(range=[0, max(m2_mas) * 1.25])
-    return style_fig(fig, height=520)
+    fig.update_yaxes(categoryorder="array", categoryarray=orden[::-1])
+    fig.update_layout(xaxis_title="m² comprables con el tope (250.000 €)",
+                      legend=dict(orientation="h", y=-0.16, x=0))
+    fig.update_xaxes(range=[0, tope / disp["precio_minimo"].min() * 1.15])
+    return style_fig(fig, height=460)
 
 
 def fig_b2_capacidad_hogar():
@@ -496,27 +502,23 @@ with tab2:
     )
     st.divider()
 
-    st.markdown("##### Precio €/m² por provincia y m² equivalentes al tope")
+    st.markdown("##### ¿Cuántos m² compra el tope del Préstec según la provincia?")
     col_graf_texto(
         fig_b2_precio_m2(),
-        "El tope del Préstec (250.000 €) es único para toda Cataluña, pero el precio del m² varía "
-        "enormemente entre provincias. La altura es el precio medio de compraventa en 2024; la etiqueta "
-        "superior, cuántos m² compra el tope al precio medio provincial.\n\n"
-        "En **Barcelona** el tope alcanza para **87 m²** de media — el mínimo habitable. En **Lleida**, la "
-        "misma cantidad compra **193 m²**. Mismo nombre y mismas condiciones, pero efecto real muy distinto "
-        "según dónde se aplique.", key="b2precio")
+        "El Préstec tiene un tope único de 250.000 € para toda Cataluña, pero el precio del m² varía mucho "
+        "entre provincias. La barra muestra el precio medio de compraventa en 2024; la etiqueta superior "
+        "indica cuántos m² se pueden comprar con ese tope al precio medio provincial. En **Barcelona** "
+        "alcanza para **87 m²** de media. En **Lleida**, la misma cantidad compra **193 m²**. Mismo "
+        "programa, efecto muy distinto según dónde se compre.", key="b2precio")
     st.divider()
 
-    st.markdown("##### m² comprables con el tope, por comarca extremo")
+    st.markdown("##### El tope del Préstec no compra lo mismo en todas las comarcas")
     col_graf_texto(
         fig_b2_m2_comarca(),
-        "Con el mismo tope de 250.000 €, la superficie que se puede comprar varía enormemente según la "
-        "provincia y la comarca. En **Barcelonès**, el tope alcanza para solo **65 m²** — el mínimo "
-        "habitable. En **Garrigues (Lleida)**, la misma cantidad compra **395 m²**.\n\n"
-        "La línea discontinua marca la media provincial. En Barcelona la dispersión interna es la mayor: "
-        "entre la comarca más barata y la más cara hay una diferencia de 157 m². El programa aplica un tope "
-        "único para toda Cataluña, pero su efecto real depende completamente de dónde se compre.",
-        key="b2m2")
+        "Con el mismo tope, la superficie comprable varía enormemente dentro de cada provincia. En "
+        "Barcelona, entre **Lluçanès (222 m²)** y **Barcelonès (65 m²)** hay una diferencia de 157 m². El "
+        "programa no distingue entre comarcas — el tope es el mismo para todas — pero su efecto real depende "
+        "completamente de dónde se compre.", key="b2m2")
     st.divider()
 
     st.markdown("##### Capacidad financiera por perfil de hogar")
