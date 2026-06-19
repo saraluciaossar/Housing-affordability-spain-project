@@ -1,4 +1,4 @@
-# Housing Access in Spain — Are public first-home programs calibrated to the real market?
+# Housing Access in Spain: Are public first-home programs calibrated to the real market?
 
 Interactive data-analysis project evaluating whether two Spanish public programs for first-home
 access are well calibrated to actual housing market conditions: the **ICO mortgage guarantee**
