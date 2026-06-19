@@ -1,4 +1,4 @@
-# Housing Access in Spain — Are public first-home programs calibrated to the real market?
+# Housing Access in Spain: Are public first-home programs calibrated to the real market?
 
 Interactive data-analysis project evaluating whether two Spanish public programs for first-home
 access are well calibrated to actual housing market conditions: the **ICO mortgage guarantee**
@@ -15,6 +15,20 @@ Jupyter notebooks (Block 1–3) and presented as an interactive **Streamlit + Pl
   mortgage (€200,000) is out of reach for single-applicant profiles at median salary.
 - **H3 (Block 3):** The permanent HPO (officially protected housing) resale ceiling generates
   an accumulated wealth gap that exceeds the initial €50,000 loan benefit over 30 years.
+
+  ## Key findings
+
+- **No single applicant** with a median regional salary can afford the complementary mortgage
+  required by the Préstec Emancipació in any Catalan province — only couple profiles clear
+  the €200,000 threshold.
+- **8 out of 19 autonomous communities** show median transaction prices above the ICO price
+  cap, meaning the guarantee fails to cover the most common market price in nearly half the
+  country.
+- **Illes Balears** is the extreme outlier: even two-income couple profiles cannot afford the
+  median property price.
+- **The permanent HPO resale ceiling** generates an accumulated wealth gap of **€232,090**
+  versus free-market appreciation over 30 years in Barcelona (65 m²) — more than four times
+  the initial €50,000 loan benefit.
 
 ## Methodology
 
@@ -41,6 +55,7 @@ Convention is consistent across all visualizations and underlying data.
 - Official ICO and ICF program terms and conditions
 
 ## Project structure
+```
 Housing-affordability-spain-project/
 ├── app.py                  # Streamlit app (light theme, Plotly charts)
 ├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
@@ -48,14 +63,7 @@ Housing-affordability-spain-project/
 ├── .streamlit/config.toml  # theme configuration
 ├── requirements.txt
 └── README.md
-
-Housing-affordability-spain-project/
-├── app.py                  # Streamlit app (light theme, Plotly charts)
-├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
-├── Notebooks/              # three analysis blocks
-├── .streamlit/config.toml  # theme configuration
-├── requirements.txt
-└── README.md
+```
 
 Processed DataFrames are exported from the notebooks to `Data/` as CSVs prefixed `b1_`, `b2_`,
 `b3_` and loaded in the app via `@st.cache_data`.
