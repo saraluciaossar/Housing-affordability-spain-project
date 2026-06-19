@@ -331,10 +331,10 @@ def b3_brecha_escenarios(horizonte):
 
 
 # ============================== APP ==============================
-st.title("Acceso a la vivienda en España")
+st.title("Acceso a la primera vivienda en España y Cataluña")
 st.markdown(
     "<p style='font-size:1.5rem; color:#555; font-weight:400; margin-top:-0.6rem;'>"
-    "¿Están las ayudas públicas a la primera vivienda calibradas al mercado real?</p>",
+    "¿Están el aval ICO y el Préstec Emancipació calibrados al mercado real?</p>",
     unsafe_allow_html=True)
 
 tab_intro, tab1, tab2, tab3, tab_concl = st.tabs(
