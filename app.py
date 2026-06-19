@@ -397,6 +397,7 @@ with tab_intro:
 
 # ------------------------------ Bloque 1 ------------------------------
 with tab1:
+    st.subheader("Programa nacional: Aval ICO")
     st.caption("H1: el tope ICO no cubre el precio real en los mercados más tensionados.")
     año = st.radio("Año de referencia (cobertura ICO)", [2024, 2025], horizontal=True, key="b1_año")
     bsel = load("b1_brecha_ico.csv").query("año == @año")
@@ -425,7 +426,8 @@ with tab1:
         "precio medio y la marca ámbar el tope ICO. Aun donde la media queda cubierta, la provincia más "
         "cara puede superar el tope (rojo). **Madrid y Baleares, abajo, son los casos más tensionados.**")
     st.plotly_chart(fig_range_ico(), use_container_width=True, key="range24")
-    st.divider()
+    st.markdown("---")
+    st.subheader("Capacidad de endeudamiento por perfil")
 
     st.markdown("##### Salario medio por sexo y CCAA (2024)")
     st.caption("Pasa el cursor sobre los círculos para ver el salario y la brecha entre hombres y mujeres.")
@@ -478,8 +480,9 @@ with tab1:
 
 # ------------------------------ Bloque 2 ------------------------------
 with tab2:
-    st.caption("H2: aunque el Préstec cubre el precio nominal, la hipoteca complementaria (200.000 €) "
-               "es inaccesible para perfiles individuales.")
+    st.subheader("Programa autonómico: Préstec Emancipació")
+    st.caption("H2: aunque el Préstec cubre el precio nominal, el 80 % restante de financiación bancaria "
+               "es inaccesible para perfiles individuales con salario medio.")
     p = load("b2_provincias.csv")
     hip_m, hip_h = p["hipoteca_max_M"].iloc[0], p["hipoteca_max_H"].iloc[0]
     m1, m2, m3, m4 = st.columns(4)
@@ -521,21 +524,6 @@ with tab2:
         "completamente de dónde se compre.", key="b2m2")
     st.divider()
 
-    st.markdown("##### Capacidad financiera por perfil de hogar")
-    col_graf_texto(
-        fig_b2_capacidad_hogar(),
-        "Cada barra muestra la hipoteca máxima que puede asumir ese perfil según el salario medio en "
-        "Cataluña (tramo 25–34 años, 2024), con una tasa de esfuerzo máxima del 35 % sobre ingresos netos.\n\n"
-        "La línea discontinua marca 200.000 €, que es el 80 % del precio máximo del Préstec (250.000 €), lo "
-        "que el banco tendría que financiar en el escenario de mayor exigencia. Si la vivienda costara menos, "
-        "la hipoteca necesaria sería menor y algunos perfiles individuales podrían llegar. Lo que la gráfica "
-        "demuestra es que, con el salario medio del tramo 25–34 años en Cataluña, los perfiles individuales "
-        "no alcanzan los 200.000 € necesarios en el escenario de máxima exigencia del programa. Solo las "
-        "parejas superan el umbral.\n\n"
-        "_Nota metodológica: la capacidad de las parejas asume que ambas personas perciben el salario medio "
-        "del tramo 25–34 años (INE) y trabajan a tiempo completo. Es el escenario optimista._", key="b2cap")
-    st.divider()
-
     st.markdown("##### Rango de precio €/m² por provincia: comarca más barata y más cara")
     ev = col_graf_texto(
         fig_b2_dispersion(),
@@ -560,6 +548,22 @@ with tab2:
             c2.metric(f"Máximo · {d['comarca_maximo']}", f"{d['precio_maximo']:,.0f} €/m²")
             c3.metric(f"Mínimo · {d['comarca_minimo']}", f"{d['precio_minimo']:,.0f} €/m²")
 
+    st.markdown("---")
+    st.subheader("Perfil financiero del solicitante")
+    st.markdown("##### Capacidad financiera por perfil de hogar")
+    col_graf_texto(
+        fig_b2_capacidad_hogar(),
+        "Cada barra muestra la hipoteca máxima que puede asumir ese perfil según el salario medio en "
+        "Cataluña (tramo 25–34 años, 2024), con una tasa de esfuerzo máxima del 35 % sobre ingresos netos.\n\n"
+        "La línea discontinua marca 200.000 €, que es el 80 % del precio máximo del Préstec (250.000 €), lo "
+        "que el banco tendría que financiar en el escenario de mayor exigencia. Si la vivienda costara menos, "
+        "la hipoteca necesaria sería menor y algunos perfiles individuales podrían llegar. Lo que la gráfica "
+        "demuestra es que, con el salario medio del tramo 25–34 años en Cataluña, los perfiles individuales "
+        "no alcanzan los 200.000 € necesarios en el escenario de máxima exigencia del programa. Solo las "
+        "parejas superan el umbral.\n\n"
+        "_Nota metodológica: la capacidad de las parejas asume que ambas personas perciben el salario medio "
+        "del tramo 25–34 años (INE) y trabajan a tiempo completo. Es el escenario optimista._", key="b2cap")
+
 # ------------------------------ Bloque 3 ------------------------------
 with tab3:
     cg = load("b3_cagr_provincias.csv").set_index("provincia")
@@ -576,6 +580,7 @@ with tab3:
         "bloque: **¿cuánto vale esa restricción en euros, y es proporcional al beneficio inicial del "
         "préstamo?**"
     )
+    st.subheader("Impacto patrimonial proyectado de la HPO a 30 años")
     st.caption("H3: la calificación HPO permanente genera una pérdida patrimonial acumulada que supera "
                "el beneficio inicial del préstamo (50.000 €).")
     st.markdown(
