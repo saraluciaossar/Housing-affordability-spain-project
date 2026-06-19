@@ -15,7 +15,7 @@ PROV = {"Barcelona": "#16404D", "Girona": "#2E6E80", "Tarragona": "#6BA3B5", "Ll
 DATA = Path(__file__).parent / "Data"
 M2_REF = 65  # vivienda de referencia (m²) — mínimo que el tope compra en la comarca más cara
 
-st.set_page_config(page_title="Acceso a la vivienda en España", page_icon="🏠", layout="wide")
+st.set_page_config(page_title="Acceso a la vivienda en España", layout="wide")
 
 
 @st.cache_data
@@ -37,7 +37,7 @@ def style_fig(fig, height=460):
 
 
 def col_graf_texto(fig, texto_md, key=None, on_select=False):
-    col_g, col_t = st.columns([2, 1], gap="large")
+    col_g, col_t = st.columns([2, 1], gap="large", vertical_alignment="center")
     ev = None
     with col_g:
         if on_select:
@@ -109,8 +109,10 @@ def fig_range_ico():
                   (NO_CUBIERTO, "Máximo provincial supera el tope", "circle"),
                   (MERCADO, "Precio medio CCAA", "circle-open"), (TOPE, "Tope ICO", "line-ns")])
     fig.update_yaxes(categoryorder="array", categoryarray=orden)
-    fig.update_layout(xaxis_title="Precio (€)", legend=dict(orientation="h", y=-0.10, x=0))
-    return style_fig(fig, height=700)
+    fig.update_layout(xaxis_title="Precio (€)", legend=dict(orientation="h", y=-0.08, x=0))
+    fig = style_fig(fig, height=780)
+    fig.update_layout(margin=dict(l=10, r=10, t=20, b=80))
+    return fig
 
 
 def fig_genero():
@@ -119,12 +121,15 @@ def fig_genero():
     for _, r in df.iterrows():
         y, h, m = r["comunidad_autonoma"], r["salario_H"], r["salario_M"]
         if pd.notna(h) and pd.notna(m):
+            brecha = h - m
             fig.add_trace(go.Scatter(x=[min(h, m), max(h, m)], y=[y, y], mode="lines",
                                      line=dict(color=GRID, width=2), showlegend=False, hoverinfo="skip"))
             fig.add_trace(go.Scatter(x=[h], y=[y], mode="markers", marker=dict(color=HOMBRE, size=11),
-                                     showlegend=False, hovertemplate=f"{y} · Hombre: %{{x:,.0f}} €<extra></extra>"))
+                                     showlegend=False,
+                                     hovertemplate=f"{y} · Hombre: {h:,.0f} €<br>Brecha H−M: {brecha:,.0f} €<extra></extra>"))
             fig.add_trace(go.Scatter(x=[m], y=[y], mode="markers", marker=dict(color=MUJER, size=11),
-                                     showlegend=False, hovertemplate=f"{y} · Mujer: %{{x:,.0f}} €<extra></extra>"))
+                                     showlegend=False,
+                                     hovertemplate=f"{y} · Mujer: {m:,.0f} €<br>Brecha H−M: {brecha:,.0f} €<extra></extra>"))
         elif pd.isna(h) and pd.isna(m):
             fig.add_trace(go.Scatter(x=[r["salario_HyM"]], y=[y], mode="markers",
                                      marker=dict(color=SIN_DATO, size=12, symbol="diamond"), showlegend=False,
@@ -210,8 +215,8 @@ def fig_b2_dispersion():
         fig.add_trace(go.Scatter(x=[d["precio_minimo"], d["precio_maximo"]], y=[p, p], mode="lines+markers",
                                  line=dict(color=PROV[p], width=3), marker=dict(color=PROV[p], size=10),
                                  showlegend=False,
-                                 hovertemplate=(f"{p}<br>{d['comarca_minimo']}: %{{x:,.0f}} €/m²"
-                                                f"<br>{d['comarca_maximo']}<extra></extra>")))
+                                 hovertemplate=(f"{p}<br>mín {d['comarca_minimo']}: %{{x:,.0f}} €/m²"
+                                                f"<br>máx {d['comarca_maximo']}<extra></extra>")))
         fig.add_trace(go.Scatter(x=[media], y=[p], mode="markers", showlegend=False,
                                  marker=dict(color="white", size=11, line=dict(color=PROV[p], width=2)),
                                  hovertemplate=f"{p} · media provincial: %{{x:,.0f}} €/m²<extra></extra>"))
@@ -273,8 +278,11 @@ def b3_brecha_escenarios(horizonte):
 
 
 # ============================== APP ==============================
-st.title("🏠 Acceso a la vivienda en España")
-st.caption("¿Están las ayudas públicas a la primera vivienda calibradas al mercado real?")
+st.title("Acceso a la vivienda en España")
+st.markdown(
+    "<p style='font-size:1.5rem; color:#555; font-weight:400; margin-top:-0.6rem;'>"
+    "¿Están las ayudas públicas a la primera vivienda calibradas al mercado real?</p>",
+    unsafe_allow_html=True)
 
 tab_intro, tab1, tab2, tab3, tab_concl = st.tabs(
     ["Introducción", "Bloque 1 — Aval ICO", "Bloque 2 — Préstec Emancipació",
@@ -282,48 +290,62 @@ tab_intro, tab1, tab2, tab3, tab_concl = st.tabs(
 
 # ------------------------------ Introducción ------------------------------
 with tab_intro:
-    st.markdown(
-        "Este proyecto evalúa si dos programas públicos de acceso a la primera vivienda están bien "
-        "calibrados al mercado real: el **aval ICO** (nacional) y el **Préstec Emancipació** (Cataluña). "
-        "El análisis se desarrolla en tres bloques:\n\n"
-        "- **Bloque 1 — Aval ICO (H1):** ¿el tope cubre el precio real en cada CCAA? Falla justo en los "
-        "mercados más tensionados.\n"
-        "- **Bloque 2 — Préstec Emancipació (H2):** aunque el tope cubre el precio nominal, la hipoteca "
-        "complementaria (200.000 €) es inaccesible para perfiles individuales.\n"
-        "- **Bloque 3 — Calificación HPO a 30 años (H3):** la calificación permanente genera una pérdida "
-        "patrimonial acumulada que supera el beneficio inicial del préstamo (50.000 €).\n\n"
-        "**Convención de signo:** brecha **negativa = rojo** (problema), **positiva = verde** (bien)."
-    )
-    st.subheader("Metodología")
-    st.markdown(
-        "- **Capacidad de endeudamiento:** modelo hipotecario estándar — tipo 3,25 %, plazo 25 años, "
-        "tasa de esfuerzo máx. 35 % sobre ingreso neto (Banco de España), factor neto 0,78. Las parejas "
-        "asumen dos salarios medios a tiempo completo (escenario optimista).\n"
-        "- **Proyección a 30 años (Bloque 3):** CAGR histórica provincial 2013-2024 como revalorización del "
-        "mercado libre; IPC medio histórico (1,95 %) como techo HPO. Determinista, con sensibilidad ±1 pp.\n"
-        "- **Limitación:** los precios son medias por CCAA/provincia, sin distribución ni percentiles → la "
-        "brecha real en mercados tensionados puede estar subestimada."
-    )
-    st.subheader("Fuentes")
-    st.markdown(
-        "Colegio de Registradores (precios de compraventa), Idescat (precios comarcales de Cataluña e IPC), "
-        "INE — Encuesta Anual de Estructura Salarial (salarios 25-34 por sexo y CCAA), condiciones oficiales "
-        "ICO / ICF."
-    )
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        st.markdown(
+            "Este proyecto evalúa si dos programas públicos de acceso a la primera vivienda están bien "
+            "calibrados al mercado real.\n\n"
+            "**Aval ICO** (nacional) — el Estado avala hasta el 20 % de la hipoteca para que jóvenes y "
+            "familias compren su primera vivienda sin ahorro previo para la entrada, hasta un tope de "
+            "precio por CCAA.  \n"
+            "🔗 [Línea de avales ICO](https://www.ico.es/linea-avales-hipoteca-primera-vivienda)\n\n"
+            "**Préstec Emancipació** (Cataluña, ICF) — préstamo que cubre el 20 % de la entrada (máx. "
+            "50.000 €) para vivienda de hasta 250.000 €; el 80 % restante se financia con hipoteca "
+            "bancaria convencional.  \n"
+            "🔗 [ICF Habitatge Emancipació](https://www.icf.cat/es/prestecs/habitatge/icf-habitatge-emancipacio)\n\n"
+            "**Las tres hipótesis:**\n"
+            "- **H1 · Bloque 1:** el tope ICO no cubre el precio real en los mercados más tensionados.\n"
+            "- **H2 · Bloque 2:** la hipoteca complementaria (200.000 €) es inaccesible para perfiles "
+            "individuales.\n"
+            "- **H3 · Bloque 3:** la calificación HPO permanente genera una pérdida patrimonial que supera "
+            "el beneficio inicial del préstamo (50.000 €).\n\n"
+            "**Convención de signo:** brecha **negativa = rojo** (problema), **positiva = verde** (bien)."
+        )
+        st.subheader("Metodología")
+        st.markdown(
+            "- **Capacidad de endeudamiento:** modelo hipotecario estándar — tipo 3,25 %, plazo 25 años, "
+            "tasa de esfuerzo máx. 35 % sobre ingreso neto (Banco de España), factor neto 0,78. Las parejas "
+            "asumen dos salarios medios a tiempo completo (escenario optimista).\n"
+            "- **Proyección a 30 años (Bloque 3):** CAGR histórica provincial 2013-2024 como revalorización "
+            "del mercado libre; IPC medio histórico como techo HPO. Determinista, con sensibilidad ±1 pp.\n"
+            "- **Limitación:** los precios son medias por CCAA/provincia, sin distribución ni percentiles → "
+            "la brecha real en mercados tensionados puede estar subestimada."
+        )
+        st.subheader("Fuentes")
+        st.markdown(
+            "- [Colegio de Registradores — compraventas de inmuebles uso residencial por provincia]"
+            "(https://opendata.registradores.org/dataset/dataset/compraventas-de-inmuebles-uso-residencial-por-provincia/resource/b779dd2c-db5c-4771-9a50-571bf04ecb15)\n"
+            "- [Idescat — preu mitjà de venda d'habitatges (comarques i províncies)]"
+            "(https://www.idescat.cat/indicadors/?id=aec&n=15707)\n"
+            "- [Idescat — IPC](https://www.idescat.cat/indicadors/?id=basics&n=10261)\n"
+            "- [INE — Encuesta Anual de Estructura Salarial](https://www.ine.es) (salarios 25-34 por sexo y CCAA)\n"
+            "- [ICO — precios máximos por CCAA (PDF oficial)]"
+            "(https://www.ico.es/documents/20124/777320/Precios+maximos+CCAA-+avales-jovenes-familias.pdf/ecedf846-95a6-66d4-99f4-4941e5bec442?t=1715080874074)"
+        )
 
 # ------------------------------ Bloque 1 ------------------------------
 with tab1:
     st.caption("H1: el tope ICO no cubre el precio real en los mercados más tensionados.")
-    b24 = load("b1_brecha_ico.csv").query("año == 2024")
-    peor = b24.loc[b24["brecha_ico"].idxmin()]
+    año = st.radio("Año de referencia (cobertura ICO)", [2024, 2025], horizontal=True, key="b1_año")
+    bsel = load("b1_brecha_ico.csv").query("año == @año")
+    peor = bsel.loc[bsel["brecha_ico"].idxmin()]
     m1, m2 = st.columns(2)
-    m1.metric("CCAA donde el tope no cubre (2024)", f"{int((b24['brecha_ico'] < 0).sum())} de {len(b24)}")
+    m1.metric(f"CCAA donde el tope no cubre ({año})", f"{int((bsel['brecha_ico'] < 0).sum())} de {len(bsel)}")
     m2.metric("Mayor brecha negativa", f"{peor['brecha_ico']:,.0f} €", peor["comunidad_autonoma"],
               delta_color="off")
     st.divider()
 
     st.markdown("##### Brecha entre tope ICO y precio medio por CCAA")
-    año = st.radio("Año", [2024, 2025], horizontal=True, key="b1_año")
     col_graf_texto(
         fig_lollipop_ico(año),
         f"En **{año}**, la mayoría de CCAA quedan en verde (el tope cubre el precio medio), pero los "
@@ -332,16 +354,15 @@ with tab1:
     st.divider()
 
     st.markdown("##### Dispersión provincial de precios vs. tope ICO (2024)")
-    col_graf_texto(
-        fig_range_ico(),
+    st.markdown(
         "Cada barra va del precio mínimo al máximo provincial dentro de la CCAA; el punto hueco es el "
         "precio medio y la marca ámbar el tope ICO. Aun donde la media queda cubierta, la provincia más "
-        "cara puede superar el tope (rojo). Madrid y Baleares, abajo, son los casos más tensionados.",
-        key="range24")
+        "cara puede superar el tope (rojo). **Madrid y Baleares, abajo, son los casos más tensionados.**")
+    st.plotly_chart(fig_range_ico(), use_container_width=True, key="range24")
     st.divider()
 
     st.markdown("##### Salario medio por sexo y CCAA (2024)")
-    st.caption("Haz clic en una CCAA para ver el detalle.")
+    st.caption("Pasa el cursor sobre los círculos para ver el salario y la brecha entre hombres y mujeres.")
     ev = col_graf_texto(
         fig_genero(),
         "El salario medio de la mujer (naranja) queda por debajo del hombre (azul) en casi todas las CCAA. "
@@ -365,6 +386,14 @@ with tab1:
                 c3.metric("Brecha (H − M)", "sin dato")
     st.divider()
 
+    st.markdown(
+        "Para estimar si cada perfil puede acceder a la hipoteca, se aplicó un modelo estándar de capacidad "
+        "de endeudamiento: tipo de interés 3,25 % anual, plazo 25 años, tasa de esfuerzo máxima del 35 % "
+        "sobre ingresos netos (criterio del Banco de España). El salario bruto se convierte a neto aplicando "
+        "un factor de 0,78. La hipoteca máxima financiable resulta de la fórmula de anualidad: cuota mensual "
+        "máxima × factor de descuento del préstamo. Para las parejas se suman los dos salarios medios del "
+        "tramo 25–34 años (escenario optimista: ambos a tiempo completo)."
+    )
     st.markdown("##### Capacidad financiera por CCAA y perfil (2024)")
     col_graf_texto(
         fig_capacidad(),
@@ -406,7 +435,8 @@ with tab2:
     st.divider()
 
     st.markdown("##### Dispersión de precio €/m² por comarca")
-    st.caption("Pasa el cursor para ver el precio; haz clic en una provincia para ver su detalle.")
+    st.caption("Pasa el cursor sobre los puntos para ver el precio mínimo y máximo de cada provincia y las "
+               "comarcas en esos extremos.")
     ev = col_graf_texto(
         fig_b2_dispersion(),
         "Rango de precio entre la comarca más barata y la más cara de cada provincia; el punto hueco es la "
@@ -426,11 +456,25 @@ with tab2:
 
 # ------------------------------ Bloque 3 ------------------------------
 with tab3:
-    st.caption("H3: la calificación HPO permanente genera una pérdida patrimonial acumulada que supera "
-               "el beneficio inicial del préstamo (50.000 €).")
     cg = load("b3_cagr_provincias.csv").set_index("provincia")
     ipc = float(load("b3_meta.csv")["ipc_medio_historico"].iloc[0])
     res = load("b3_resumen_provincias.csv").set_index("provincia")
+
+    st.caption("H3: la calificación HPO permanente genera una pérdida patrimonial acumulada que supera "
+               "el beneficio inicial del préstamo (50.000 €).")
+    st.markdown(
+        "La proyección usa la **CAGR** (Compound Annual Growth Rate) histórica provincial del período "
+        "2013–2024 como tasa de revalorización del mercado libre, y el IPC medio histórico del mismo "
+        f"período (**{ipc:.2f} % anual**) como techo de revalorización del precio máximo HPO.\n\n"
+        "**Fórmula aplicada:**\n"
+        "- Precio mercado año *n* = Precio₀ × (1 + CAGR)ⁿ\n"
+        "- Precio HPO año *n* = Precio₀ × (1 + IPC)ⁿ\n"
+        "- Brecha año *n* = (Precio mercado − Precio HPO) × 65 m²\n\n"
+        "Se usa **65 m²** como superficie de referencia porque es el tamaño mínimo que se podría adquirir "
+        "hoy al precio medio de la provincia de Barcelona con el tope del Préstec (250.000 €). Los "
+        "resultados se expresan en euros totales para esa vivienda tipo."
+    )
+    st.divider()
 
     st.markdown("##### Proyección a 30 años: mercado libre vs. precio máximo HPO")
     c_prov, c_hor = st.columns([1, 2])
@@ -465,47 +509,51 @@ with tab3:
 
 # ------------------------------ Conclusiones e insights ------------------------------
 with tab_concl:
-    st.markdown(
-        "Los tres bloques apuntan al mismo diagnóstico: **ambos programas trasladan al individuo riesgos "
-        "que son de naturaleza estructural.**\n\n"
-        "**H1 — Aval ICO:** el tope cubre el precio medio en **17 de 19** comunidades autónomas, pero falla "
-        "exactamente donde más importa: **Madrid e Illes Balears**, los mercados más tensionados. Sus topes "
-        "estáticos no se actualizan con el mercado — la brecha se amplía año a año.\n\n"
-        "**H2 — Préstec Emancipació:** el tope de 250.000 € cubre el precio nominal en las cuatro provincias "
-        "catalanas, pero el programa exige una hipoteca complementaria de 200.000 €. Con los salarios medios "
-        "del tramo 25–34 años, **ningún perfil individual — ni hombre ni mujer — puede financiarla**. Solo "
-        "las parejas con dos salarios llegan.\n\n"
-        "**H3 — Calificación HPO permanente:** quien accede al Préstec asume una pérdida patrimonial "
-        "acumulada a 30 años que en Barcelona **supera los 232.000 € para una vivienda de 65 m² — 4,6 veces "
-        "el beneficio inicial** del préstamo. En el escenario más conservador (CAGR −1 pp), la pérdida sigue "
-        "siendo de 89.000 €. La HPO permanente hace que el beneficiario pague el coste de mantener el stock "
-        "de vivienda asequible durante toda su vida hipotecaria."
-    )
-    st.subheader("Tres recomendaciones")
-    st.markdown(
-        "1. **Actualizar los topes del ICO anualmente** con referencia a precios de mercado real y con mayor "
-        "granularidad geográfica — idealmente provincial.\n"
-        "2. **Incorporar un criterio de viabilidad financiera mínima** en ambos programas: no solo un tope "
-        "máximo de ingresos, sino una capacidad de endeudamiento verificada sobre la hipoteca complementaria.\n"
-        "3. **Sustituir la calificación HPO permanente** por fórmulas temporales o mecanismos de compensación "
-        "de plusvalía que preserven el objetivo de accesibilidad sin transferir al individuo el coste del "
-        "mantenimiento del parque asequible."
-    )
-    st.subheader("Línea de análisis futura")
-    st.markdown(
-        "Estos programas están diseñados para menores de 35 años — el Préstec amplió recientemente el límite "
-        "hasta los 40. Sin embargo, según datos de Idealista, la edad media de firma de hipoteca en España "
-        "ronda los 40 años. Esto sugiere que el **perfil objetivo del programa puede no coincidir con el "
-        "perfil real del mercado** — una hipótesis que abre una línea de trabajo relevante."
-    )
-    st.subheader("Relevancia para el sector privado")
-    st.markdown(
-        "- **Fintechs hipotecarias:** los perfiles individuales que no acceden al ICO ni al Préstec son "
-        "clientes potenciales para productos hipotecarios alternativos.\n"
-        "- **Fondos de inversión en vivienda asequible:** el modelo de brecha patrimonial HPO es el tipo de "
-        "análisis que usan para valorar activos regulados.\n"
-        "- **Consultoras inmobiliarias:** saber qué mercados no están cubiertos por el programa público "
-        "define dónde hay demanda embalsada sin cobertura.\n"
-        "- **Administraciones públicas:** el análisis identifica exactamente dónde fallan los programas y "
-        "propone correcciones concretas."
-    )
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        st.markdown(
+            "Los tres bloques apuntan al mismo diagnóstico: **ambos programas trasladan al individuo riesgos "
+            "que son de naturaleza estructural.**\n\n"
+            "**H1 — Aval ICO:** el tope cubre el precio medio en **17 de 19** comunidades autónomas, pero "
+            "falla exactamente donde más importa: **Madrid e Illes Balears**, los mercados más tensionados. "
+            "Sus topes estáticos no se actualizan con el mercado — la brecha se amplía año a año.\n\n"
+            "**H2 — Préstec Emancipació:** el tope de 250.000 € cubre el precio nominal en las cuatro "
+            "provincias catalanas, pero el programa exige una hipoteca complementaria de 200.000 €. Con los "
+            "salarios medios del tramo 25–34 años, **ningún perfil individual — ni hombre ni mujer — puede "
+            "financiarla**. Solo las parejas con dos salarios llegan.\n\n"
+            "**H3 — Calificación HPO permanente:** quien accede al Préstec asume una pérdida patrimonial "
+            "acumulada a 30 años que en Barcelona **supera los 232.000 € para una vivienda de 65 m² — 4,6 "
+            "veces el beneficio inicial** del préstamo. En el escenario más conservador (CAGR −1 pp), la "
+            "pérdida sigue siendo de 89.000 €. La HPO permanente hace que el beneficiario pague el coste de "
+            "mantener el stock de vivienda asequible durante toda su vida hipotecaria."
+        )
+        st.subheader("Tres recomendaciones")
+        st.markdown(
+            "1. **Actualizar los topes del ICO anualmente** con referencia a precios de mercado real y con "
+            "mayor granularidad geográfica — idealmente provincial.\n"
+            "2. **Incorporar un criterio de viabilidad financiera mínima** en ambos programas: no solo un "
+            "tope máximo de ingresos, sino una capacidad de endeudamiento verificada sobre la hipoteca "
+            "complementaria.\n"
+            "3. **Sustituir la calificación HPO permanente** por fórmulas temporales o mecanismos de "
+            "compensación de plusvalía que preserven la accesibilidad sin transferir al individuo el coste "
+            "del mantenimiento del parque asequible."
+        )
+        st.subheader("Línea de análisis futura")
+        st.markdown(
+            "Estos programas están diseñados para menores de 35 años — el Préstec amplió recientemente el "
+            "límite hasta los 40. Sin embargo, según datos de Idealista, la edad media de firma de hipoteca "
+            "en España ronda los 40 años. Esto sugiere que el **perfil objetivo del programa puede no "
+            "coincidir con el perfil real del mercado** — una hipótesis que abre una línea de trabajo "
+            "relevante."
+        )
+        st.subheader("Relevancia para el sector privado")
+        st.markdown(
+            "- **Fintechs hipotecarias:** los perfiles individuales que no acceden al ICO ni al Préstec son "
+            "clientes potenciales para productos hipotecarios alternativos.\n"
+            "- **Fondos de inversión en vivienda asequible:** el modelo de brecha patrimonial HPO es el tipo "
+            "de análisis que usan para valorar activos regulados.\n"
+            "- **Consultoras inmobiliarias:** saber qué mercados no están cubiertos por el programa público "
+            "define dónde hay demanda embalsada sin cobertura.\n"
+            "- **Administraciones públicas:** el análisis identifica exactamente dónde fallan los programas y "
+            "propone correcciones concretas."
+        )
