@@ -515,7 +515,7 @@ with tab2:
         "programa, efecto muy distinto según dónde se compre.", key="b2precio")
     st.divider()
 
-    st.markdown("##### El tope del Préstec no compra lo mismo en todas las comarcas")
+    st.markdown("##### El tope del Préstec (250.000 €) no compra lo mismo en todas las comarcas")
     col_graf_texto(
         fig_b2_m2_comarca(),
         "Con el mismo tope, la superficie comprable varía enormemente dentro de cada provincia. En "
@@ -624,7 +624,7 @@ with tab3:
     cC.metric(f"Escenario alto · {hor_s} a.", f"{esc['Alto']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
     col_graf_texto(
         fig_b3_sensibilidad(hor_s),
-        "Para validar la robustez del resultado se proyectan tres escenarios de revalorización del mercado "
+        "Para validar el resultado se proyectan tres escenarios de revalorización del mercado "
         "libre en Barcelona, variando la CAGR histórica (3,76 %) en ±1 punto porcentual. El precio máximo "
         "HPO es idéntico en los tres — siempre crece al IPC (1,95 %).\n\n"
         "Las tarjetas muestran la brecha patrimonial acumulada al año seleccionado para una vivienda de "
