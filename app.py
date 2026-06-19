@@ -186,6 +186,40 @@ def fig_b2_precio_m2():
     return style_fig(fig, height=470)
 
 
+def fig_b2_m2_comarca():
+    prov = load("b2_provincias.csv")
+    disp = load("b2_dispersion_comarcas.csv").set_index("provincia")
+    tope = prov["tope_vivienda"].iloc[0]
+    orden = prov.sort_values("precio_m2_2024", ascending=False)["territorio"].tolist()
+    m2_mas = [tope / disp.loc[p, "precio_minimo"] for p in orden]
+    m2_menos = [tope / disp.loc[p, "precio_maximo"] for p in orden]
+    media = [prov.loc[prov["territorio"] == p, "tope_m2_2024"].values[0] for p in orden]
+    nom_mas = [disp.loc[p, "comarca_minimo"] for p in orden]
+    nom_menos = [disp.loc[p, "comarca_maximo"] for p in orden]
+    cols = [PROV[p] for p in orden]
+    fig = go.Figure()
+    fig.add_bar(x=orden, y=m2_mas, marker=dict(color=cols), showlegend=False,
+                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_mas, m2_mas)], textposition="outside",
+                textfont=dict(size=10, color=TEXT), customdata=nom_mas,
+                hovertemplate="%{x} · %{customdata} (más barata): %{y:.0f} m²<extra></extra>")
+    fig.add_bar(x=orden, y=m2_menos, marker=dict(color=cols, opacity=0.45), showlegend=False,
+                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_menos, m2_menos)], textposition="outside",
+                textfont=dict(size=10, color=TEXT), customdata=nom_menos,
+                hovertemplate="%{x} · %{customdata} (más cara): %{y:.0f} m²<extra></extra>")
+    fig.add_trace(go.Scatter(x=orden, y=media, mode="markers", showlegend=False,
+                             marker=dict(symbol="line-ew", color=TEXT, size=46, line=dict(width=1.6, color=TEXT)),
+                             hovertemplate="%{x} · media provincial: %{y:.0f} m²<extra></extra>"))
+    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO), name="Comarca más barata (más m²)")
+    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO, opacity=0.45), name="Comarca más cara (menos m²)")
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="lines", line=dict(color=TEXT, width=1.6),
+                             name="Media provincial"))
+    fig.update_layout(barmode="group", bargap=0.4, bargroupgap=0.12,
+                      yaxis_title="m² comprables con el tope (250.000 €)",
+                      legend=dict(orientation="h", y=-0.14, x=0))
+    fig.update_yaxes(range=[0, max(m2_mas) * 1.25])
+    return style_fig(fig, height=520)
+
+
 def fig_b2_capacidad_hogar():
     df = load("b2_provincias.csv")
     perfiles = [("hipoteca_max_M", "Mujer sola", MUJER), ("hipoteca_max_H", "Hombre solo", HOMBRE),
@@ -202,7 +236,7 @@ def fig_b2_capacidad_hogar():
     fig.add_vrect(x0=0, x1=nec, fillcolor=NO_CUBIERTO, opacity=0.06, line_width=0)
     fig.add_vline(x=nec, line=dict(color=TEXT, width=1.6, dash="dash"))
     fig.add_annotation(x=nec, xref="x", yref="paper", y=1.0, yanchor="bottom", xanchor="center",
-                       showarrow=False, text=f"Hipoteca necesaria · {nec:,.0f} €",
+                       showarrow=False, text="80 % del tope máximo del Préstec: 200k €",
                        font=dict(color=TEXT, size=12))
     fig.update_layout(xaxis_title="Hipoteca máxima financiable (€)", showlegend=False)
     fig.update_xaxes(range=[0, max(max(vals), nec) * 1.18], tickformat="~s", ticksuffix="€")
@@ -473,16 +507,29 @@ with tab2:
         "según dónde se aplique.", key="b2precio")
     st.divider()
 
+    st.markdown("##### m² comprables con el tope, por comarca extremo")
+    col_graf_texto(
+        fig_b2_m2_comarca(),
+        "Con el mismo tope de 250.000 €, la superficie que se puede comprar varía enormemente según la "
+        "provincia y la comarca. En **Barcelonès**, el tope alcanza para solo **65 m²** — el mínimo "
+        "habitable. En **Garrigues (Lleida)**, la misma cantidad compra **395 m²**.\n\n"
+        "La línea discontinua marca la media provincial. En Barcelona la dispersión interna es la mayor: "
+        "entre la comarca más barata y la más cara hay una diferencia de 157 m². El programa aplica un tope "
+        "único para toda Cataluña, pero su efecto real depende completamente de dónde se compre.",
+        key="b2m2")
+    st.divider()
+
     st.markdown("##### Capacidad financiera por perfil de hogar")
     col_graf_texto(
         fig_b2_capacidad_hogar(),
-        "La línea discontinua marca los **200.000 €** que el comprador debe financiar con hipoteca bancaria "
-        "para complementar el Préstec. Las barras muestran la hipoteca máxima que puede asumir cada perfil "
-        "según su salario medio en Cataluña (tramo 25–34 años, 2024), con tasa de esfuerzo máxima del 35 % "
-        "sobre ingresos netos.\n\n"
-        "Las **parejas** superan el umbral en todos los casos. Los perfiles **individuales** —hombre o "
-        "mujer— se quedan entre 60.000 € y 75.000 € por debajo del mínimo necesario. El programa cubre la "
-        "entrada, pero no garantiza que el solicitante pueda obtener la hipoteca complementaria.\n\n"
+        "Cada barra muestra la hipoteca máxima que puede asumir ese perfil según el salario medio en "
+        "Cataluña (tramo 25–34 años, 2024), con una tasa de esfuerzo máxima del 35 % sobre ingresos netos.\n\n"
+        "La línea discontinua marca 200.000 €, que es el 80 % del precio máximo del Préstec (250.000 €), lo "
+        "que el banco tendría que financiar en el escenario de mayor exigencia. Si la vivienda costara menos, "
+        "la hipoteca necesaria sería menor y algunos perfiles individuales podrían llegar. Lo que la gráfica "
+        "demuestra es que, con el salario medio del tramo 25–34 años en Cataluña, los perfiles individuales "
+        "no alcanzan los 200.000 € necesarios en el escenario de máxima exigencia del programa. Solo las "
+        "parejas superan el umbral.\n\n"
         "_Nota metodológica: la capacidad de las parejas asume que ambas personas perciben el salario medio "
         "del tramo 25–34 años (INE) y trabajan a tiempo completo. Es el escenario optimista._", key="b2cap")
     st.divider()
