@@ -110,7 +110,9 @@ def fig_range_ico():
                                  showlegend=False, hovertemplate=f"Tope ICO {y}: %{{x:,.0f}} €<extra></extra>"))
     leyenda(fig, [(CUBIERTO, "Máximo provincial cubierto", "circle"),
                   (NO_CUBIERTO, "Máximo provincial supera el tope", "circle"),
-                  (MERCADO, "Precio medio CCAA", "circle-open"), (TOPE, "Tope ICO por CCAA", "line-ns")])
+                  (MERCADO, "Precio medio CCAA", "circle-open")])
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="lines",
+                             line=dict(color=TOPE, dash="dash"), name="Tope ICO por CCAA"))
     fig.update_yaxes(categoryorder="array", categoryarray=orden)
     fig.update_layout(xaxis_title="Precio (€)", legend=dict(orientation="h", y=-0.08, x=0))
     fig = style_fig(fig, height=780)
@@ -217,18 +219,22 @@ def fig_b2_dispersion():
         media = prov.loc[prov["territorio"] == p, "precio_m2_2024"].values[0]
         fig.add_trace(go.Scatter(x=[d["precio_minimo"], d["precio_maximo"]], y=[p, p], mode="lines",
                                  line=dict(color=PROV[p], width=3), showlegend=False, hoverinfo="skip"))
-        fig.add_trace(go.Scatter(x=[d["precio_minimo"]], y=[p], mode="markers", marker=dict(color=PROV[p], size=11),
+        fig.add_trace(go.Scatter(x=[d["precio_minimo"]], y=[p], mode="markers", marker=dict(color=PROV[p], size=13),
                                  showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_minimo']} (más barata): %{{x:,.0f}} €/m²<extra></extra>"))
-        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers",
-                                 marker=dict(color=PROV[p], size=11, opacity=0.45), showlegend=False,
+        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers", marker=dict(color=PROV[p], size=9),
+                                 showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): %{{x:,.0f}} €/m²<extra></extra>"))
         fig.add_trace(go.Scatter(x=[media], y=[p], mode="markers", showlegend=False,
                                  marker=dict(color="white", size=10, line=dict(color=PROV[p], width=2)),
                                  hovertemplate=f"{p} · media provincial: %{{x:,.0f}} €/m²<extra></extra>"))
-    leyenda(fig, [(MERCADO, "Comarca más barata", "circle"),
-                  ("rgba(90,90,102,0.45)", "Comarca más cara", "circle"),
-                  (MERCADO, "Media provincial", "circle-open")])
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=13),
+                             name="Comarca más barata (mín)"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=9),
+                             name="Comarca más cara (máx)"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
+                             marker=dict(color="white", size=10, line=dict(color=MERCADO, width=2)),
+                             name="Media provincial"))
     fig.update_yaxes(categoryorder="array", categoryarray=orden[::-1])
     fig.update_layout(xaxis_title="Precio €/m²", legend=dict(orientation="h", y=-0.22, x=0))
     fig.update_xaxes(ticksuffix=" €")
@@ -422,13 +428,12 @@ with tab1:
         fig_capacidad(),
         "La brecha de acceso mide la diferencia entre la hipoteca máxima que puede financiar cada perfil "
         "(según su salario medio) y el precio medio de la vivienda en esa CCAA. Valores negativos (zona "
-        "roja): el perfil no puede financiar la vivienda media.\n\n"
-        "Los resultados son contundentes: prácticamente **ninguna persona individual** puede acceder con el "
-        "salario medio de su comunidad, y la restricción afecta especialmente a las **mujeres**. Las "
-        "**parejas** presentan el patrón opuesto: con dos salarios casi todos los perfiles superan el "
-        "umbral. Las excepciones son las parejas de dos mujeres en Madrid y **todos** los perfiles en Illes "
-        "Balears, donde el precio supera incluso la capacidad de las parejas.\n\n"
-        "Marcadores: círculo = individual, rombo = Pareja HM, cuadrado = Pareja MM, triángulo = Pareja HH.",
+        "roja): el perfil no puede financiar el coste de la vivienda media.\n\n"
+        "Los resultados indican que prácticamente ninguna persona individual puede acceder al préstamo "
+        "hipotecario con el salario medio de su comunidad. La restricción afecta especialmente a las "
+        "mujeres. Las parejas presentan el patrón opuesto: con dos salarios casi todos los perfiles superan "
+        "el umbral. Las excepciones son las parejas de dos mujeres en Madrid y todos los perfiles en Illes "
+        "Balears, donde el precio supera incluso la capacidad de las parejas.",
         key="capacidad")
 
 # ------------------------------ Bloque 2 ------------------------------
@@ -449,7 +454,11 @@ with tab2:
         "por su cuenta una hipoteca bancaria convencional por los 200.000 € restantes. Es decir: aunque el "
         "programa resuelve el problema del **ahorro previo**, no resuelve el de la **capacidad de "
         "endeudamiento**. Las tarjetas muestran exactamente esa brecha: cuánto puede financiar cada perfil "
-        "individual con su salario medio y cuánto le falta para llegar al mínimo necesario."
+        "individual con su salario medio y cuánto le falta para llegar al mínimo necesario.\n\n"
+        "_Nota: esta restricción de capacidad de endeudamiento es propia del Préstec, que divide la "
+        "financiación en dos préstamos independientes. El aval ICO funciona de forma distinta: avala una "
+        "única hipoteca por el precio total, por lo que su restricción principal es de precio máximo, no de "
+        "capacidad financiera._"
     )
     st.divider()
 
@@ -478,7 +487,7 @@ with tab2:
         "del tramo 25–34 años (INE) y trabajan a tiempo completo. Es el escenario optimista._", key="b2cap")
     st.divider()
 
-    st.markdown("##### Dispersión de precio €/m² por comarca")
+    st.markdown("##### Rango de precio €/m² por provincia: comarca más barata y más cara")
     ev = col_graf_texto(
         fig_b2_dispersion(),
         "Dentro de cada provincia el precio del m² varía mucho entre comarcas. El punto sólido marca la "
@@ -529,8 +538,8 @@ with tab3:
         "- Precio HPO año *n* = Precio₀ × (1 + IPC)ⁿ\n"
         "- Brecha año *n* = (Precio mercado − Precio HPO) × 65 m²\n\n"
         "Se usa **65 m²** como superficie de referencia porque es el tamaño mínimo que se podría adquirir "
-        "hoy al precio medio de la provincia de Barcelona con el tope del Préstec (250.000 €). Los "
-        "resultados se expresan en euros totales para esa vivienda tipo."
+        "al precio medio de 2024 de la provincia de Barcelona con el tope del Préstec (250.000 €), según los "
+        "datos analizados en el Bloque 2. Los resultados se expresan en euros totales para esa vivienda tipo."
     )
     st.divider()
 
