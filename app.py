@@ -363,7 +363,7 @@ with tab_intro:
             "la vivienda debe tener **calificación HPO permanente**, lo que limita su precio de reventa al IPC "
             "de forma indefinida.  \n"
             "🔗 [ICF Habitatge Emancipació](https://www.icf.cat/es/prestecs/habitatge/icf-habitatge-emancipacio)\n\n"
-            "**¿Qué es la HPO?** La *calificació permanent d'HPO* es una figura jurídica catalana que limita el "
+            "**¿Qué es la HPO?** La *calificació permanent d'Habitatge amb Protecció Oficial (HPO)* es una figura jurídica catalana que limita el "
             "precio máximo de reventa de la vivienda al IPC histórico, con el objetivo de mantener el stock de "
             "vivienda asequible. A diferencia de otras calificaciones temporales, esta no caduca.\n\n"
             "**Alcance de este proyecto:** se estudian ambos programas en su configuración principal: el aval "
@@ -549,7 +549,7 @@ with tab2:
             c3.metric(f"Mínimo · {d['comarca_minimo']}", f"{d['precio_minimo']:,.0f} €/m²")
 
     st.markdown("---")
-    st.subheader("Perfil financiero del solicitante")
+    st.subheader("Perfil financiero de la persona solicitante")
     st.markdown("##### Capacidad financiera por perfil de hogar")
     col_graf_texto(
         fig_b2_capacidad_hogar(),
