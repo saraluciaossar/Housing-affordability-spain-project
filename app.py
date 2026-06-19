@@ -605,7 +605,7 @@ with tab3:
     k1, k2, k3 = st.columns(3)
     k1.metric("IPC medio (techo HPO)", f"{ipc:.2f} %")
     k2.metric(f"CAGR {provincia} (mercado)", f"{cg.loc[provincia, 'cagr']:.2f} %")
-    k3.metric(f"Brecha {provincia} - 30 aaños ({M2_REF} m²)",
+    k3.metric(f"Brecha {provincia} - 30 años ({M2_REF} m²)",
               f"{res.loc[provincia, 'brecha_m2'] * M2_REF:,.0f} €")
 
     col_graf_texto(
@@ -642,7 +642,7 @@ with tab_concl:
             "que son de naturaleza estructural.**\n\n"
             "**H1 — Aval ICO:** el tope cubre el precio medio en **17 de 19** comunidades autónomas, pero "
             "falla exactamente donde más importa: **Madrid e Illes Balears**, los mercados más tensionados. "
-            "Sus topes estáticos no se actualizan con el mercado — la brecha se amplía año a año.\n\n"
+            "Sus topes estáticos no se actualizan con el mercado, la brecha se amplía año a año.\n\n"
             "**H2 — Préstec Emancipació:** el tope de 250.000 € cubre el precio nominal en las cuatro "
             "provincias catalanas, pero el programa exige una hipoteca complementaria de 200.000 €. Con los "
             "salarios medios del tramo 25–34 años, **ningún perfil individual — ni hombre ni mujer — puede "
@@ -656,7 +656,7 @@ with tab_concl:
         st.subheader("Tres recomendaciones")
         st.markdown(
             "1. **Actualizar los topes del ICO anualmente** con referencia a precios de mercado real y con "
-            "mayor granularidad geográfica — idealmente provincial.\n"
+            "mayor granularidad geográfica (idealmente provincial).\n"
             "2. **Incorporar un criterio de viabilidad financiera mínima** en ambos programas: no solo un "
             "tope máximo de ingresos, sino una capacidad de endeudamiento verificada sobre la hipoteca "
             "complementaria.\n"
@@ -666,8 +666,8 @@ with tab_concl:
         )
         st.subheader("Línea de análisis futura")
         st.markdown(
-            "Estos programas están diseñados para menores de 35 años — el Préstec amplió recientemente el "
-            "límite hasta los 40. Sin embargo, según datos de Idealista, la edad media de firma de hipoteca "
+            "Estos programas están diseñados para menores de 35 años (el Préstec amplió recientemente el "
+            "límite hasta los 40). Sin embargo, según datos de Idealista, la edad media de firma de hipoteca "
             "en España ronda los 40 años. Esto sugiere que el **perfil objetivo del programa puede no "
             "coincidir con el perfil real del mercado** — una hipótesis que abre una línea de trabajo "
             "relevante."
