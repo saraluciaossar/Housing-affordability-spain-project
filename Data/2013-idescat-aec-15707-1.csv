@@ -1,0 +1,113 @@
+﻿row;col;r;c;value;status
+"Alt Camp";Valor;1;1;1012,58;
+"Alt Camp";"Variació (%)";1;2;;..
+"Alt Empordà";Valor;2;1;1897,02;
+"Alt Empordà";"Variació (%)";2;2;;..
+"Alt Penedès";Valor;3;1;1154,55;
+"Alt Penedès";"Variació (%)";3;2;;..
+"Alt Urgell";Valor;4;1;942,73;
+"Alt Urgell";"Variació (%)";4;2;;..
+"Alta Ribagorça";Valor;5;1;938,71;
+"Alta Ribagorça";"Variació (%)";5;2;;..
+Anoia;Valor;6;1;1083,78;
+Anoia;"Variació (%)";6;2;;..
+Aran;Valor;7;1;1875,31;
+Aran;"Variació (%)";7;2;;..
+Bages;Valor;8;1;1072,71;
+Bages;"Variació (%)";8;2;;..
+"Baix Camp";Valor;9;1;1443,67;
+"Baix Camp";"Variació (%)";9;2;;..
+"Baix Ebre";Valor;10;1;1094,34;
+"Baix Ebre";"Variació (%)";10;2;;..
+"Baix Empordà";Valor;11;1;1797,19;
+"Baix Empordà";"Variació (%)";11;2;;..
+"Baix Llobregat";Valor;12;1;1915,17;
+"Baix Llobregat";"Variació (%)";12;2;;..
+"Baix Penedès";Valor;13;1;1262,65;
+"Baix Penedès";"Variació (%)";13;2;;..
+Barcelonès;Valor;14;1;2404,26;
+Barcelonès;"Variació (%)";14;2;;..
+Berguedà;Valor;15;1;1123,58;
+Berguedà;"Variació (%)";15;2;;..
+Cerdanya;Valor;16;1;2006;
+Cerdanya;"Variació (%)";16;2;;..
+"Conca de Barberà";Valor;17;1;687,36;
+"Conca de Barberà";"Variació (%)";17;2;;..
+Garraf;Valor;18;1;2290,39;
+Garraf;"Variació (%)";18;2;;..
+Garrigues;Valor;19;1;458,13;
+Garrigues;"Variació (%)";19;2;;..
+Garrotxa;Valor;20;1;1220,32;
+Garrotxa;"Variació (%)";20;2;;..
+Gironès;Valor;21;1;1196,37;
+Gironès;"Variació (%)";21;2;;..
+Lluçanès;Valor;22;1;;..
+Lluçanès;"Variació (%)";22;2;;..
+Maresme;Valor;23;1;1582,76;
+Maresme;"Variació (%)";23;2;;..
+Moianès;Valor;24;1;0;
+Moianès;"Variació (%)";24;2;;..
+Montsià;Valor;25;1;863,61;
+Montsià;"Variació (%)";25;2;;..
+Noguera;Valor;26;1;821,17;
+Noguera;"Variació (%)";26;2;;..
+Osona;Valor;27;1;881,67;
+Osona;"Variació (%)";27;2;;..
+"Pallars Jussà";Valor;28;1;844,14;
+"Pallars Jussà";"Variació (%)";28;2;;..
+"Pallars Sobirà";Valor;29;1;1227,99;
+"Pallars Sobirà";"Variació (%)";29;2;;..
+"Pla de l'Estany";Valor;30;1;1170,62;
+"Pla de l'Estany";"Variació (%)";30;2;;..
+"Pla d'Urgell";Valor;31;1;758,7;
+"Pla d'Urgell";"Variació (%)";31;2;;..
+Priorat;Valor;32;1;1139,91;
+Priorat;"Variació (%)";32;2;;..
+"Ribera d'Ebre";Valor;33;1;623,29;
+"Ribera d'Ebre";"Variació (%)";33;2;;..
+Ripollès;Valor;34;1;1362,62;
+Ripollès;"Variació (%)";34;2;;..
+Segarra;Valor;35;1;927,4;
+Segarra;"Variació (%)";35;2;;..
+Segrià;Valor;36;1;923,36;
+Segrià;"Variació (%)";36;2;;..
+Selva;Valor;37;1;1916,12;
+Selva;"Variació (%)";37;2;;..
+Solsonès;Valor;38;1;1181,88;
+Solsonès;"Variació (%)";38;2;;..
+Tarragonès;Valor;39;1;1337,85;
+Tarragonès;"Variació (%)";39;2;;..
+"Terra Alta";Valor;40;1;755,96;
+"Terra Alta";"Variació (%)";40;2;;..
+Urgell;Valor;41;1;759,59;
+Urgell;"Variació (%)";41;2;;..
+"Vallès Occidental";Valor;42;1;1451,19;
+"Vallès Occidental";"Variació (%)";42;2;;..
+"Vallès Oriental";Valor;43;1;1383,35;
+"Vallès Oriental";"Variació (%)";43;2;;..
+Catalunya;Valor;44;1;1770,18;
+Catalunya;"Variació (%)";44;2;;..
+Metropolità;Valor;45;1;1992,5;
+Metropolità;"Variació (%)";45;2;;..
+"Comarques Gironines";Valor;46;1;1816,12;
+"Comarques Gironines";"Variació (%)";46;2;;..
+"Camp de Tarragona";Valor;47;1;1379,99;
+"Camp de Tarragona";"Variació (%)";47;2;;..
+"Terres de l'Ebre";Valor;48;1;958,37;
+"Terres de l'Ebre";"Variació (%)";48;2;;..
+Ponent;Valor;49;1;864,63;
+Ponent;"Variació (%)";49;2;;..
+"Comarques Centrals";Valor;50;1;1005,67;
+"Comarques Centrals";"Variació (%)";50;2;;..
+"Alt Pirineu i Aran";Valor;51;1;1421,8;
+"Alt Pirineu i Aran";"Variació (%)";51;2;;..
+Penedès;Valor;52;1;1567,66;
+Penedès;"Variació (%)";52;2;;..
+Barcelona;Valor;53;1;1920,78;
+Barcelona;"Variació (%)";53;2;;..
+Girona;Valor;54;1;1820,82;
+Girona;"Variació (%)";54;2;;..
+Lleida;Valor;55;1;963,05;
+Lleida;"Variació (%)";55;2;;..
+Tarragona;Valor;56;1;1256,23;
+Tarragona;"Variació (%)";56;2;;..
