@@ -49,6 +49,14 @@ Housing-affordability-spain-project/
 ├── requirements.txt
 └── README.md
 
+Housing-affordability-spain-project/
+├── app.py                  # Streamlit app (light theme, Plotly charts)
+├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
+├── Notebooks/              # three analysis blocks
+├── .streamlit/config.toml  # theme configuration
+├── requirements.txt
+└── README.md
+
 Processed DataFrames are exported from the notebooks to `Data/` as CSVs prefixed `b1_`, `b2_`,
 `b3_` and loaded in the app via `@st.cache_data`.
 
