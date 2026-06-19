@@ -2,7 +2,6 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # Paleta semántica del proyecto (coherente con los notebooks)
 HOMBRE, MUJER = "#2C6FB0", "#E07B39"
@@ -14,6 +13,7 @@ TEXT, GRID = "#222222", "#E2E5E9"
 PROV = {"Barcelona": "#16404D", "Girona": "#2E6E80", "Tarragona": "#6BA3B5", "Lleida": "#A9C5D1"}
 
 DATA = Path(__file__).parent / "Data"
+M2_REF = 65  # vivienda de referencia (m²) — mínimo que el tope compra en la comarca más cara
 
 st.set_page_config(page_title="Acceso a la vivienda en España", page_icon="🏠", layout="wide")
 
@@ -23,31 +23,39 @@ def load(name):
     return pd.read_csv(DATA / name)
 
 
-def style_fig(fig, height=480, money_x=False, money_y=False):
+def style_fig(fig, height=460):
     fig.update_layout(
-        template="plotly_white",
-        paper_bgcolor="white", plot_bgcolor="white",
+        template="plotly_white", paper_bgcolor="white", plot_bgcolor="white",
         font=dict(color=TEXT, size=13),
-        title=dict(font=dict(size=16)),
-        margin=dict(l=10, r=10, t=70, b=10),
-        height=height,
-        legend=dict(bgcolor="white", bordercolor=GRID, borderwidth=1),
+        margin=dict(l=10, r=10, t=30, b=10), height=height,
+        legend=dict(bgcolor="rgba(255,255,255,0.6)", bordercolor=GRID, borderwidth=1),
+        hoverlabel=dict(bgcolor="white", bordercolor=GRID),
     )
     fig.update_xaxes(gridcolor=GRID, zeroline=False)
     fig.update_yaxes(gridcolor=GRID, zeroline=False)
-    if money_x:
-        fig.update_xaxes(tickformat="~s", ticksuffix="€")
-    if money_y:
-        fig.update_yaxes(tickformat="~s", ticksuffix="€")
     return fig
 
 
-def bloque(fig, texto_md):
-    col_g, col_t = st.columns([2, 1])
+def col_graf_texto(fig, texto_md, key=None, on_select=False):
+    """Layout estándar: gráfica a la izquierda, texto a la derecha. Devuelve evento de selección."""
+    col_g, col_t = st.columns([2, 1], gap="large")
+    ev = None
     with col_g:
-        st.plotly_chart(fig, use_container_width=True)
+        if on_select:
+            ev = st.plotly_chart(fig, use_container_width=True, key=key, on_select="rerun")
+        else:
+            st.plotly_chart(fig, use_container_width=True, key=key)
     with col_t:
         st.markdown(texto_md)
+    return ev
+
+
+def selected_y(ev):
+    try:
+        pts = ev["selection"]["points"]
+        return pts[0]["y"] if pts else None
+    except (TypeError, KeyError, IndexError):
+        return None
 
 
 def leyenda(fig, items):
@@ -72,15 +80,15 @@ def fig_lollipop_ico(year):
     fig.add_vline(x=0, line=dict(color=TEXT, width=1, dash="dash"))
     leyenda(fig, [(NO_CUBIERTO, "Precio supera el tope ICO (brecha < 0)", "circle"),
                   (CUBIERTO, "El tope ICO cubre el precio (brecha > 0)", "circle")])
-    fig.update_layout(title=f"Brecha entre tope ICO y precio medio por CCAA — {year}",
-                      xaxis_title="Brecha en € (tope ICO − precio medio)",
-                      legend=dict(orientation="h", y=-0.16, x=0))
-    return style_fig(fig, height=560, money_x=True)
+    fig.update_layout(xaxis_title="Brecha en € (tope ICO − precio medio)",
+                      legend=dict(orientation="h", y=-0.14, x=0))
+    return style_fig(fig, height=560)
 
 
-def fig_range_ico(year):
+def fig_range_ico():
     df = load("b1_dispersion_provincial.csv")
-    df = df[df["año"] == year].sort_values("precio_maximo")
+    df = df[df["año"] == 2024].sort_values("precio_maximo", ascending=False)
+    orden = df["comunidad_autonoma"].tolist()
     fig = go.Figure()
     for _, r in df.iterrows():
         color = CUBIERTO if r["precio_maximo"] <= r["tope_ico"] else NO_CUBIERTO
@@ -97,15 +105,13 @@ def fig_range_ico(year):
         fig.add_trace(go.Scatter(x=[r["tope_ico"]], y=[y], mode="markers",
                                  marker=dict(color=TOPE, size=16, symbol="line-ns",
                                              line=dict(color=TOPE, width=2.5)),
-                                 showlegend=False,
-                                 hovertemplate=f"Tope ICO: %{{x:,.0f}} €<extra></extra>"))
+                                 showlegend=False, hovertemplate=f"Tope ICO: %{{x:,.0f}} €<extra></extra>"))
     leyenda(fig, [(CUBIERTO, "Máximo provincial cubierto", "circle"),
                   (NO_CUBIERTO, "Máximo provincial supera el tope", "circle"),
-                  (MERCADO, "Precio medio CCAA", "circle-open"),
-                  (TOPE, "Tope ICO", "line-ns")])
-    fig.update_layout(title=f"Dispersión provincial de precios vs. tope ICO — {year}",
-                      xaxis_title="Precio (€)", legend=dict(orientation="h", y=-0.16, x=0))
-    return style_fig(fig, height=560, money_x=True)
+                  (MERCADO, "Precio medio CCAA", "circle-open"), (TOPE, "Tope ICO", "line-ns")])
+    fig.update_yaxes(categoryorder="array", categoryarray=orden)
+    fig.update_layout(xaxis_title="Precio (€)", legend=dict(orientation="h", y=-0.14, x=0))
+    return style_fig(fig, height=560)
 
 
 def fig_genero():
@@ -131,14 +137,12 @@ def fig_genero():
     leyenda(fig, [(HOMBRE, "Hombre", "circle"), (MUJER, "Mujer", "circle"),
                   (CONJUNTO, "Salario conjunto (dato mujer no fiable)", "circle"),
                   (SIN_DATO, "Sin dato desagregado", "diamond")])
-    fig.update_layout(title="Salario medio por sexo y CCAA (2024) — tramo 25-34 años",
-                      xaxis_title="Salario bruto anual (€)", legend=dict(orientation="h", y=-0.16, x=0))
-    return style_fig(fig, height=560, money_x=True)
+    fig.update_layout(xaxis_title="Salario bruto anual (€)", legend=dict(orientation="h", y=-0.14, x=0))
+    return style_fig(fig, height=560)
 
 
 def fig_capacidad():
     df = load("b1_capacidad.csv")
-    # (nombre, color, símbolo): círculo para individuales; forma propia por tipo de pareja
     perfiles = {"brecha_acceso_H": ("Hombre", HOMBRE, "circle"),
                 "brecha_acceso_M": ("Mujer", MUJER, "circle"),
                 "brecha_acceso_pareja_HM": ("Pareja HM", PAREJA_HM, "diamond"),
@@ -155,10 +159,9 @@ def fig_capacidad():
                                  hovertemplate=f"%{{y}} · {name}: %{{x:,.0f}} €<extra></extra>"))
     fig.add_vline(x=0, line=dict(color=TEXT, width=1, dash="dash"))
     fig.update_yaxes(categoryorder="array", categoryarray=orden)
-    fig.update_layout(title="Capacidad financiera por CCAA y perfil — Aval ICO (2024)",
-                      xaxis_title="Brecha de acceso (€)   ← no puede acceder · puede acceder →",
-                      legend=dict(orientation="h", y=-0.16, x=0))
-    return style_fig(fig, height=600, money_x=True)
+    fig.update_layout(xaxis_title="Brecha de acceso (€)   ← no puede acceder · puede acceder →",
+                      legend=dict(orientation="h", y=-0.14, x=0))
+    return style_fig(fig, height=600)
 
 
 # ============================== BLOQUE 2 ==============================
@@ -168,12 +171,10 @@ def fig_b2_precio_m2():
         x=df["territorio"], y=df["precio_m2_2024"], width=0.5,
         marker_color=[PROV[p] for p in df["territorio"]],
         text=[f"Tope: {m:.0f} m²" for m in df["tope_m2_2024"]], textposition="outside",
-        textfont=dict(color=TEXT, size=12),
-        hovertemplate="%{x}: %{y:,.0f} €/m²<extra></extra>"))
-    fig.update_layout(title="Precio medio €/m² por provincia y m² equivalentes al tope (250.000 €)",
-                      yaxis_title="€/m² (2024)", showlegend=False)
+        textfont=dict(color=TEXT, size=12), hovertemplate="%{x}: %{y:,.0f} €/m²<extra></extra>"))
+    fig.update_layout(yaxis_title="€/m² (2024)", showlegend=False)
     fig.update_yaxes(range=[0, df["precio_m2_2024"].max() * 1.25], ticksuffix=" €")
-    return style_fig(fig, height=500)
+    return style_fig(fig, height=470)
 
 
 def fig_b2_m2_comarca():
@@ -181,28 +182,34 @@ def fig_b2_m2_comarca():
     disp = load("b2_dispersion_comarcas.csv").set_index("provincia")
     tope = prov["tope_vivienda"].iloc[0]
     orden = prov.sort_values("precio_m2_2024", ascending=False)["territorio"].tolist()
-    m2_mas = [tope / disp.loc[p, "precio_minimo"] for p in orden]
-    m2_menos = [tope / disp.loc[p, "precio_maximo"] for p in orden]
-    media = [prov.loc[prov["territorio"] == p, "tope_m2_2024"].values[0] for p in orden]
-    nom_mas = [disp.loc[p, "comarca_minimo"] for p in orden]
-    nom_menos = [disp.loc[p, "comarca_maximo"] for p in orden]
-    cols = [PROV[p] for p in orden]
     fig = go.Figure()
-    fig.add_bar(x=orden, y=m2_mas, marker=dict(color=cols), showlegend=False,
-                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_mas, m2_mas)], textposition="outside",
-                hovertemplate="%{x} · más barata: %{y:.0f} m²<extra></extra>")
-    fig.add_bar(x=orden, y=m2_menos, marker=dict(color=cols, opacity=0.45), showlegend=False,
-                text=[f"{n}<br>{v:.0f} m²" for n, v in zip(nom_menos, m2_menos)], textposition="outside",
-                hovertemplate="%{x} · más cara: %{y:.0f} m²<extra></extra>")
-    fig.add_trace(go.Scatter(x=orden, y=media, mode="markers", name="Media provincial",
-                             marker=dict(symbol="line-ew", color=TEXT, size=26, line=dict(width=2, color=TEXT))))
-    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO), name="Comarca más barata (más m²)")
-    fig.add_bar(x=[None], y=[None], marker=dict(color=MERCADO, opacity=0.45), name="Comarca más cara (menos m²)")
-    fig.update_layout(barmode="group", bargap=0.35, bargroupgap=0.08,
-                      title="Con el mismo tope (250.000 €) se compran más m² donde la vivienda es más barata",
-                      yaxis_title="m² comprables con el tope", legend=dict(orientation="h", y=-0.12, x=0))
-    fig.update_yaxes(range=[0, max(m2_mas) * 1.22])
-    return style_fig(fig, height=540)
+    for p in orden:
+        d = disp.loc[p]
+        m2_mas, m2_menos = tope / d["precio_minimo"], tope / d["precio_maximo"]
+        media = prov.loc[prov["territorio"] == p, "tope_m2_2024"].values[0]
+        fig.add_trace(go.Scatter(x=[m2_menos, m2_mas], y=[p, p], mode="lines",
+                                 line=dict(color=PROV[p], width=3), showlegend=False, hoverinfo="skip"))
+        fig.add_trace(go.Scatter(x=[m2_menos], y=[p], mode="markers+text",
+                                 marker=dict(color=PROV[p], size=13, opacity=0.45),
+                                 text=[f"{d['comarca_maximo']} · {m2_menos:.0f} m²"], textposition="bottom center",
+                                 textfont=dict(size=10, color=TEXT), showlegend=False,
+                                 hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): {m2_menos:.0f} m²<extra></extra>"))
+        fig.add_trace(go.Scatter(x=[m2_mas], y=[p], mode="markers+text",
+                                 marker=dict(color=PROV[p], size=14),
+                                 text=[f"{d['comarca_minimo']} · {m2_mas:.0f} m²"], textposition="top center",
+                                 textfont=dict(size=10, color=TEXT), showlegend=False,
+                                 hovertemplate=f"{p} · {d['comarca_minimo']} (más barata): {m2_mas:.0f} m²<extra></extra>"))
+        fig.add_trace(go.Scatter(x=[media], y=[p], mode="markers",
+                                 marker=dict(symbol="line-ns", color=TEXT, size=15, line=dict(width=2, color=TEXT)),
+                                 showlegend=False, hovertemplate=f"{p} · media provincial: {media:.0f} m²<extra></extra>"))
+    leyenda(fig, [(MERCADO, "Comarca más barata (más m²)", "circle"),
+                  ("rgba(90,90,102,0.45)", "Comarca más cara (menos m²)", "circle"),
+                  (TEXT, "Media provincial", "line-ns")])
+    fig.update_yaxes(categoryorder="array", categoryarray=orden[::-1])
+    fig.update_layout(xaxis_title="m² comprables con el tope (250.000 €)",
+                      legend=dict(orientation="h", y=-0.16, x=0))
+    fig.update_xaxes(range=[0, prov["tope_vivienda"].iloc[0] / disp["precio_minimo"].min() * 1.15])
+    return style_fig(fig, height=460)
 
 
 def fig_b2_capacidad_hogar():
@@ -220,11 +227,11 @@ def fig_b2_capacidad_hogar():
                            hovertemplate="%{y}: %{x:,.0f} €<extra></extra>"))
     fig.add_vrect(x0=0, x1=nec, fillcolor=NO_CUBIERTO, opacity=0.06, line_width=0)
     fig.add_vline(x=nec, line=dict(color=TEXT, width=1.6, dash="dash"))
-    fig.add_annotation(x=nec, y=labels[-1], text=f"Hipoteca necesaria: {nec:,.0f} €",
-                       showarrow=False, xanchor="left", yshift=16, font=dict(color=TEXT, size=12))
-    fig.update_layout(title="Capacidad financiera por perfil de hogar — Cataluña (25-34 años)",
-                      xaxis_title="Hipoteca máxima financiable (€)", showlegend=False)
-    fig.update_xaxes(range=[0, max(max(vals), nec) * 1.2], tickformat="~s", ticksuffix="€")
+    fig.add_annotation(x=nec, xref="x", yref="paper", y=1.0, yanchor="bottom", xanchor="center",
+                       showarrow=False, text=f"Hipoteca necesaria · {nec:,.0f} €",
+                       font=dict(color=TEXT, size=12))
+    fig.update_layout(xaxis_title="Hipoteca máxima financiable (€)", showlegend=False)
+    fig.update_xaxes(range=[0, max(max(vals), nec) * 1.18], tickformat="~s", ticksuffix="€")
     return style_fig(fig, height=440)
 
 
@@ -247,79 +254,60 @@ def fig_b2_dispersion():
     fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", name="Media provincial",
                              marker=dict(color="white", size=10, line=dict(color=MERCADO, width=2))))
     fig.update_yaxes(categoryorder="array", categoryarray=orden[::-1])
-    fig.update_layout(title="Dispersión de precio €/m² por comarca dentro de cada provincia (2024)",
-                      xaxis_title="Precio €/m²", legend=dict(orientation="h", y=-0.2, x=0))
+    fig.update_layout(xaxis_title="Precio €/m²", legend=dict(orientation="h", y=-0.22, x=0))
     fig.update_xaxes(ticksuffix=" €")
     return style_fig(fig, height=420)
 
 
 # ============================== BLOQUE 3 ==============================
-def fig_b3_curvas():
+def fig_b3_curva(provincia, horizonte):
     df = load("b3_proyecciones.csv")
-    cagr = load("b3_cagr_provincias.csv").set_index("provincia")["cagr"]
-    provs = ["Barcelona", "Girona", "Lleida", "Tarragona"]
-    fig = make_subplots(rows=2, cols=2, vertical_spacing=0.13, horizontal_spacing=0.08,
-                        subplot_titles=[f"{p} · CAGR {cagr[p]:.2f}%" for p in provs])
-    for idx, p in enumerate(provs):
-        row, col = idx // 2 + 1, idx % 2 + 1
-        d = df[df["provincia"] == p].sort_values("año_proyeccion")
-        fig.add_trace(go.Scatter(x=d["año_proyeccion"], y=d["precio_mercado_m2"], mode="lines",
-                                 line=dict(color=PROV[p], width=2.5), name="Precio mercado libre",
-                                 legendgroup="m", showlegend=(idx == 0),
-                                 hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"), row=row, col=col)
-        fig.add_trace(go.Scatter(x=d["año_proyeccion"], y=d["precio_hpo_m2"], mode="lines",
-                                 line=dict(color=TOPE, width=2, dash="dash"), name="Precio máximo HPO (IPC)",
-                                 fill="tonexty", fillcolor="rgba(214,69,69,0.12)",
-                                 legendgroup="h", showlegend=(idx == 0),
-                                 hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"), row=row, col=col)
-    fig.update_xaxes(title_text="Años desde la compra", gridcolor=GRID, zeroline=False)
-    fig.update_yaxes(gridcolor=GRID, zeroline=False, ticksuffix=" €")
-    fig.update_layout(title="Proyección a 30 años: mercado libre vs. precio máximo HPO por provincia",
-                      legend=dict(orientation="h", y=-0.08, x=0))
-    return style_fig(fig, height=640)
+    d = df[(df["provincia"] == provincia) & (df["año_proyeccion"] <= horizonte)].sort_values("año_proyeccion")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=d["año_proyeccion"], y=d["precio_mercado_m2"], mode="lines",
+                             line=dict(color=PROV[provincia], width=2.8), name="Precio mercado libre",
+                             hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
+    fig.add_trace(go.Scatter(x=d["año_proyeccion"], y=d["precio_hpo_m2"], mode="lines",
+                             line=dict(color=TOPE, width=2, dash="dash"), name="Precio máximo HPO (IPC)",
+                             fill="tonexty", fillcolor="rgba(214,69,69,0.12)",
+                             hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
+    fig.update_layout(xaxis_title="Años desde la compra", yaxis_title="€/m²",
+                      legend=dict(orientation="h", y=-0.16, x=0))
+    fig.update_yaxes(ticksuffix=" €")
+    return style_fig(fig, height=470)
 
 
-def fig_b3_brecha():
-    df = load("b3_resumen_provincias.csv").set_index("provincia")
-    orden = ["Barcelona", "Girona", "Tarragona", "Lleida"]
-    df = df.loc[orden].reset_index()
-    m2, benef = 65, 50000
-    df["brecha_total"] = df["brecha_m2"] * m2
-    fig = go.Figure(go.Bar(
-        x=df["provincia"], y=df["brecha_total"], width=0.55,
-        marker_color=[PROV[p] for p in df["provincia"]],
-        text=[f"{v:,.0f} €<br>{v/benef:.1f}× el beneficio" for v in df["brecha_total"]],
-        textposition="outside", textfont=dict(color=TEXT, size=12),
-        hovertemplate="%{x}: %{y:,.0f} €<extra></extra>"))
-    fig.add_hline(y=benef, line=dict(color=NO_CUBIERTO, width=1.6, dash="dash"))
-    fig.add_annotation(x=df["provincia"].iloc[-1], y=benef, yshift=15, xanchor="right", showarrow=False,
-                       text=f"Beneficio inicial del Préstec: {benef:,.0f} €", font=dict(color=NO_CUBIERTO, size=12))
-    fig.update_layout(title=f"Brecha patrimonial a 30 años vs. beneficio del Préstec — vivienda {m2} m²",
-                      yaxis_title="€ (vivienda de 65 m²)", showlegend=False)
-    fig.update_yaxes(range=[0, df["brecha_total"].max() * 1.2], tickformat="~s", ticksuffix="€")
-    return style_fig(fig, height=520)
-
-
-def fig_b3_sensibilidad():
+def _b3_barcelona():
     cg = load("b3_cagr_provincias.csv").set_index("provincia")
     ipc = float(load("b3_meta.csv")["ipc_medio_historico"].iloc[0])
-    base, cagr = cg.loc["Barcelona", "precio_2024"], cg.loc["Barcelona", "cagr"]
-    años = list(range(31))
+    return cg.loc["Barcelona", "precio_2024"], cg.loc["Barcelona", "cagr"], ipc
+
+
+def fig_b3_sensibilidad(horizonte):
+    base, cagr, ipc = _b3_barcelona()
+    años = list(range(horizonte + 1))
     proj = lambda rate: [base * (1 + rate / 100) ** t for t in años]
     hpo = proj(ipc)
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=años, y=hpo, mode="lines", line=dict(color=TOPE, width=2, dash="dash"),
                              name=f"Precio máximo HPO (IPC {ipc:.2f}%)"))
     for nom, rate, color in [("bajo", cagr - 1, "#C9B3DD"), ("base", cagr, "#8E5BAE"), ("alto", cagr + 1, "#5B2A86")]:
-        merc = proj(rate)
-        b30 = merc[30] - hpo[30]
-        fig.add_trace(go.Scatter(x=años, y=merc, mode="lines", line=dict(color=color, width=2.6),
-                                 name=f"Escenario {nom} (CAGR {rate:.2f}%) · brecha año 30: {b30:,.0f} €/m²"))
-    fig.update_layout(title="Análisis de sensibilidad — Barcelona (3 escenarios de revalorización)",
-                      xaxis_title="Años desde la compra", yaxis_title="€/m²",
+        fig.add_trace(go.Scatter(x=años, y=proj(rate), mode="lines", line=dict(color=color, width=2.6),
+                                 name=f"Escenario {nom} (CAGR {rate:.2f}%)",
+                                 hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
+    fig.update_layout(xaxis_title="Años desde la compra", yaxis_title="€/m²",
                       legend=dict(orientation="h", y=-0.18, x=0))
     fig.update_yaxes(ticksuffix=" €")
-    return style_fig(fig, height=560)
+    return style_fig(fig, height=520)
+
+
+def b3_brecha_escenarios(horizonte):
+    base, cagr, ipc = _b3_barcelona()
+    hpo = base * (1 + ipc / 100) ** horizonte
+    out = {}
+    for nom, rate in [("Bajo", cagr - 1), ("Base", cagr), ("Alto", cagr + 1)]:
+        out[nom] = (base * (1 + rate / 100) ** horizonte - hpo) * M2_REF
+    return out
 
 
 # ============================== NAVEGACIÓN ==============================
@@ -334,6 +322,7 @@ seccion = st.sidebar.radio(
 if seccion == "Introducción":
     st.title("Acceso a la vivienda en España")
     st.subheader("¿Están las ayudas públicas a la primera vivienda calibradas al mercado real?")
+    st.write("")
     st.markdown(
         "Análisis de dos programas públicos de acceso a la primera vivienda — el **aval ICO** "
         "(nacional) y el **Préstec Emancipació** (Cataluña) — frente al precio real de mercado.\n\n"
@@ -344,14 +333,14 @@ if seccion == "Introducción":
         "que supera el beneficio inicial del préstamo (50.000 €).\n\n"
         "**Convención de signo:** brecha **negativa = rojo** (problema), **positiva = verde** (bien)."
     )
+    st.write("")
     with st.expander("Metodología"):
         st.markdown(
             "- **Capacidad de endeudamiento:** modelo hipotecario estándar — tipo 3,25 %, plazo 25 años, "
             "tasa de esfuerzo máx. 35 % sobre ingreso neto (Banco de España), factor neto 0,78. Las parejas "
             "asumen dos salarios medios a tiempo completo (escenario optimista).\n"
             "- **Proyección a 30 años (Bloque 3):** CAGR histórica provincial 2013-2024 como revalorización "
-            "del mercado libre; IPC medio histórico (1,95 %) como techo HPO. Determinista, con análisis de "
-            "sensibilidad ±1 pp.\n"
+            "del mercado libre; IPC medio histórico (1,95 %) como techo HPO. Determinista, con sensibilidad ±1 pp.\n"
             "- **Limitación:** los precios son medias por CCAA/provincia, sin distribución ni percentiles → "
             "la brecha real en mercados tensionados puede estar subestimada."
         )
@@ -363,76 +352,165 @@ if seccion == "Introducción":
         )
 
 elif seccion.startswith("Bloque 1"):
-    st.header("Bloque 1 — Aval ICO vs. precio de mercado por CCAA")
-    st.markdown("**H1:** el tope ICO no cubre el precio real en los mercados más tensionados.")
-    año = st.radio("Año de referencia", [2024, 2025], horizontal=True)
+    st.header("Bloque 1 — Aval ICO")
+    st.caption("H1: el tope ICO no cubre el precio real en los mercados más tensionados.")
 
-    bloque(fig_lollipop_ico(año),
-           f"**Brecha tope ICO − precio medio ({año}).**\n\nLa mayoría de CCAA quedan en verde "
-           "(el tope cubre el precio medio), pero los mercados tensionados aparecen en rojo: el precio "
-           "supera el tope y el aval no llega. La brecha se amplía de 2024 a 2025.")
+    b24 = load("b1_brecha_ico.csv").query("año == 2024")
+    cap = load("b1_capacidad.csv")
+    peor = b24.loc[b24["brecha_ico"].idxmin()]
+    m1, m2, m3 = st.columns(3)
+    m1.metric("CCAA donde el tope no cubre (2024)", f"{int((b24['brecha_ico'] < 0).sum())} de {len(b24)}")
+    m2.metric("Mayor brecha negativa", f"{peor['brecha_ico']:,.0f} €", peor["comunidad_autonoma"],
+              delta_color="off")
+    m3.metric("Mujer sola sin acceso", f"{int((cap['brecha_acceso_M'] < 0).sum())} de "
+              f"{int(cap['brecha_acceso_M'].notna().sum())} CCAA")
+    st.divider()
 
-    bloque(fig_range_ico(año),
-           f"**Dispersión provincial vs. tope ICO ({año}).**\n\nCada barra va del precio mínimo al máximo "
-           "provincial dentro de la CCAA; el punto hueco es el precio medio y la marca ámbar el tope ICO. "
-           "Aun donde la media queda cubierta, la provincia más cara puede superar el tope (rojo).")
+    st.markdown("##### Brecha entre tope ICO y precio medio por CCAA")
+    año = st.radio("Año", [2024, 2025], horizontal=True, key="b1_año")
+    col_graf_texto(
+        fig_lollipop_ico(año),
+        f"En **{año}**, la mayoría de CCAA quedan en verde (el tope cubre el precio medio), pero los "
+        "mercados tensionados aparecen en rojo: el precio supera el tope y el aval no llega. La brecha "
+        "se amplía de 2024 a 2025.", key=f"loll_{año}")
+    st.divider()
 
-    bloque(fig_genero(),
-           "**Brecha salarial de género (25-34 años).**\n\nEl salario medio de la mujer (naranja) queda "
-           "por debajo del hombre (azul) en casi todas las CCAA. La Rioja y Cantabria no tienen dato "
-           "desagregado (diamante gris); Extremadura y P. Asturias usan el salario conjunto (marrón).")
+    st.markdown("##### Dispersión provincial de precios vs. tope ICO (2024)")
+    col_graf_texto(
+        fig_range_ico(),
+        "Cada barra va del precio mínimo al máximo provincial dentro de la CCAA; el punto hueco es el "
+        "precio medio y la marca ámbar el tope ICO. Aun donde la media queda cubierta, la provincia más "
+        "cara puede superar el tope (rojo). Madrid y Baleares, abajo, son los casos más tensionados.",
+        key="range24")
+    st.divider()
 
-    bloque(fig_capacidad(),
-           "**Capacidad financiera por perfil.**\n\nBrecha de acceso (capacidad − precio medio) según el "
-           "salario del perfil. En la zona roja (negativa) el perfil no puede financiar la vivienda media. "
-           "Los perfiles individuales —y especialmente las mujeres— quedan excluidos en más territorios.")
+    st.markdown("##### Salario medio por sexo y CCAA (2024)")
+    st.caption("Haz clic en una CCAA para ver el detalle.")
+    ev = col_graf_texto(
+        fig_genero(),
+        "El salario medio de la mujer (naranja) queda por debajo del hombre (azul) en casi todas las CCAA. "
+        "La Rioja y Cantabria no tienen dato desagregado (diamante gris); Extremadura y P. Asturias usan el "
+        "salario conjunto (marrón).", key="genero", on_select=True)
+    sel = selected_y(ev)
+    if sel:
+        g = load("b1_salario_genero.csv")
+        row = g[g["comunidad_autonoma"] == sel]
+        if not row.empty:
+            row = row.iloc[0]
+            st.markdown(f"**{sel}**")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Salario hombre", f"{row['salario_H']:,.0f} €" if pd.notna(row["salario_H"]) else "—")
+            c2.metric("Salario mujer", f"{row['salario_M']:,.0f} €" if pd.notna(row["salario_M"]) else "—")
+            if pd.notna(row["salario_H"]) and pd.notna(row["salario_M"]):
+                brecha = row["salario_H"] - row["salario_M"]
+                c3.metric("Brecha (H − M)", f"{brecha:,.0f} €", f"{brecha / row['salario_H'] * 100:.1f} %",
+                          delta_color="off")
+            else:
+                c3.metric("Brecha (H − M)", "sin dato")
+    st.divider()
+
+    st.markdown("##### Capacidad financiera por CCAA y perfil (2024)")
+    col_graf_texto(
+        fig_capacidad(),
+        "Brecha de acceso (capacidad − precio medio) según el salario del perfil. En la zona roja "
+        "(negativa) el perfil no puede financiar la vivienda media. Marcadores: círculo = individual, "
+        "rombo = Pareja HM, cuadrado = Pareja MM, triángulo = Pareja HH.", key="capacidad")
 
 elif seccion.startswith("Bloque 2"):
     st.header("Bloque 2 — Préstec Emancipació (Cataluña)")
-    st.markdown("**H2:** aunque el Préstec cubre el precio nominal, la hipoteca complementaria "
-                "(200.000 €) es inaccesible para perfiles individuales.")
+    st.caption("H2: aunque el Préstec cubre el precio nominal, la hipoteca complementaria (200.000 €) "
+               "es inaccesible para perfiles individuales.")
 
-    bloque(fig_b2_precio_m2(),
-           "**Precio €/m² por provincia.**\n\nEl tope del Préstec (250.000 €) compra muy distinta "
-           "superficie según la provincia: pocos m² donde el suelo es caro (Barcelona) y muchos más "
-           "donde es barato (Lleida). La etiqueta indica los m² equivalentes al tope.")
+    p = load("b2_provincias.csv")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Tope del Préstec", "250.000 €")
+    m2.metric("Hipoteca necesaria", "200.000 €")
+    m3.metric("Mujer sola alcanza", f"{p['hipoteca_max_M'].iloc[0]:,.0f} €",
+              f"{p['hipoteca_max_M'].iloc[0] - 200000:,.0f} € vs. necesaria", delta_color="normal")
+    m4.metric("Hombre solo alcanza", f"{p['hipoteca_max_H'].iloc[0]:,.0f} €",
+              f"{p['hipoteca_max_H'].iloc[0] - 200000:,.0f} € vs. necesaria", delta_color="normal")
+    st.divider()
 
-    bloque(fig_b2_m2_comarca(),
-           "**m² por comarca: extremos vs. media.**\n\nEl promedio provincial esconde fuertes "
-           "diferencias internas: con el mismo tope se compran muchos más m² en la comarca más barata "
-           "que en la más cara (p. ej. Lluçanès vs. Barcelonès). El tono fuerte es la comarca más barata; "
-           "el claro, la más cara.")
+    st.markdown("##### Precio €/m² por provincia y m² equivalentes al tope")
+    col_graf_texto(
+        fig_b2_precio_m2(),
+        "El tope del Préstec (250.000 €) compra muy distinta superficie según la provincia: pocos m² "
+        "donde el suelo es caro (Barcelona) y muchos más donde es barato (Lleida).", key="b2precio")
+    st.divider()
 
-    bloque(fig_b2_capacidad_hogar(),
-           "**Capacidad financiera por perfil de hogar.**\n\nPara comprar al tope (250.000 €) hace falta "
-           "una hipoteca de **200.000 €** (línea de referencia). Los perfiles individuales —mujer y hombre "
-           "solos— quedan en la zona roja: su hipoteca máxima no llega. Solo las parejas (dos salarios) "
-           "superan el umbral.")
+    st.markdown("##### m² que compra el tope: comarca más barata vs. más cara")
+    col_graf_texto(
+        fig_b2_m2_comarca(),
+        "El promedio provincial esconde fuertes diferencias internas: con el mismo tope se compran muchos "
+        "más m² en la comarca más barata (punto sólido) que en la más cara (punto claro). La marca vertical "
+        "es la media provincial.", key="b2m2")
+    st.divider()
 
-    bloque(fig_b2_dispersion(),
-           "**Dispersión comarcal de precio €/m².**\n\nRango de precio entre la comarca más barata y la "
-           "más cara de cada provincia; el punto hueco es la media provincial. Muestra cuánta variación "
-           "territorial queda oculta tras la media.")
+    st.markdown("##### Capacidad financiera por perfil de hogar")
+    col_graf_texto(
+        fig_b2_capacidad_hogar(),
+        "Para comprar al tope hace falta una hipoteca de **200.000 €** (línea de referencia). Los perfiles "
+        "individuales quedan en la zona roja: su hipoteca máxima no llega. Solo las parejas (dos salarios) "
+        "superan el umbral.", key="b2cap")
+    st.divider()
+
+    st.markdown("##### Dispersión de precio €/m² por comarca")
+    st.caption("Pasa el cursor para ver el precio; haz clic en una provincia para ver su detalle.")
+    ev = col_graf_texto(
+        fig_b2_dispersion(),
+        "Rango de precio entre la comarca más barata y la más cara de cada provincia; el punto hueco es la "
+        "media provincial.", key="b2disp", on_select=True)
+    sel = selected_y(ev)
+    if sel:
+        d = load("b2_dispersion_comarcas.csv")
+        d = d[d["provincia"] == sel]
+        if not d.empty:
+            d = d.iloc[0]
+            media = p.loc[p["territorio"] == sel, "precio_m2_2024"].values[0]
+            st.markdown(f"**{sel}**")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Precio medio provincial", f"{media:,.0f} €/m²")
+            c2.metric(f"Máximo · {d['comarca_maximo']}", f"{d['precio_maximo']:,.0f} €/m²")
+            c3.metric(f"Mínimo · {d['comarca_minimo']}", f"{d['precio_minimo']:,.0f} €/m²")
 
 elif seccion.startswith("Bloque 3"):
-    st.header("Bloque 3 — Calificación HPO permanente a 30 años")
-    st.markdown("**H3:** la calificación HPO permanente genera una pérdida patrimonial acumulada "
-                "que supera el beneficio inicial del préstamo (50.000 €).")
+    st.header("Bloque 3 — Calificación HPO a 30 años")
+    st.caption("H3: la calificación HPO permanente genera una pérdida patrimonial acumulada que supera "
+               "el beneficio inicial del préstamo (50.000 €).")
 
-    bloque(fig_b3_curvas(),
-           "**Proyección a 30 años.**\n\nEl precio de mercado libre crece según la CAGR histórica "
-           "(2013-2024) de cada provincia; el precio máximo HPO solo crece con el IPC (1,95 %). El área "
-           "roja es la brecha patrimonial: la plusvalía que la vivienda HPO no acumula frente al mercado.")
+    cg = load("b3_cagr_provincias.csv").set_index("provincia")
+    ipc = float(load("b3_meta.csv")["ipc_medio_historico"].iloc[0])
+    res = load("b3_resumen_provincias.csv").set_index("provincia")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("IPC medio (techo HPO)", f"{ipc:.2f} %")
+    m2.metric("CAGR Barcelona (mercado)", f"{cg.loc['Barcelona', 'cagr']:.2f} %")
+    m3.metric(f"Brecha Barcelona · 30 a. ({M2_REF} m²)",
+              f"{res.loc['Barcelona', 'brecha_m2'] * M2_REF:,.0f} €")
+    st.divider()
 
-    bloque(fig_b3_brecha(),
-           "**Brecha patrimonial vs. beneficio del préstamo.**\n\nPérdida de plusvalía a 30 años para una "
-           "vivienda de **65 m²** (el mínimo que el tope compra en la comarca más cara). La línea roja marca "
-           "los 50.000 € de beneficio inicial; la etiqueta indica cuántas veces lo supera cada provincia.")
+    st.markdown("##### Proyección a 30 años: mercado libre vs. precio máximo HPO")
+    c_prov, c_hor = st.columns([1, 2])
+    provincia = c_prov.selectbox("Provincia", ["Barcelona", "Girona", "Tarragona", "Lleida"], key="b3prov")
+    horizonte = c_hor.select_slider("Horizonte (años)", options=[5, 10, 15, 20, 25, 30], value=30, key="b3hor")
+    col_graf_texto(
+        fig_b3_curva(provincia, horizonte),
+        "El mercado libre crece según la CAGR histórica de la provincia; el precio máximo HPO solo crece "
+        "con el IPC. El área roja es la brecha patrimonial: la plusvalía que la vivienda HPO no acumula "
+        "frente al mercado.", key=f"b3curva_{provincia}_{horizonte}")
+    st.divider()
 
-    bloque(fig_b3_sensibilidad(),
-           "**Sensibilidad (Barcelona).**\n\nTres escenarios de revalorización (CAGR −1 pp / base / +1 pp) "
-           "frente al techo HPO. La conclusión sobre la magnitud de la brecha depende del ritmo de "
-           "revalorización; el análisis acota ese rango.")
+    st.markdown("##### Análisis de sensibilidad — Barcelona")
+    hor_s = st.select_slider("Horizonte (años)", options=[5, 10, 15, 20, 25, 30], value=30, key="b3sens_hor")
+    esc = b3_brecha_escenarios(hor_s)
+    cA, cB, cC = st.columns(3)
+    cA.metric(f"Escenario bajo · {hor_s} a.", f"{esc['Bajo']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    cB.metric(f"Escenario base · {hor_s} a.", f"{esc['Base']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    cC.metric(f"Escenario alto · {hor_s} a.", f"{esc['Alto']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    col_graf_texto(
+        fig_b3_sensibilidad(hor_s),
+        "Tres escenarios de revalorización (CAGR −1 pp / base / +1 pp) frente al techo HPO. Las tarjetas "
+        f"muestran la brecha patrimonial acumulada al año {hor_s} para una vivienda de {M2_REF} m².",
+        key=f"b3sens_{hor_s}")
 
 elif seccion == "Conclusiones":
     st.header("Conclusiones")
