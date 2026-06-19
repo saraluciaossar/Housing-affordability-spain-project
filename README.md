@@ -41,6 +41,7 @@ Convention is consistent across all visualizations and underlying data.
 - Official ICO and ICF program terms and conditions
 
 ## Project structure
+```
 Housing-affordability-spain-project/
 ├── app.py                  # Streamlit app (light theme, Plotly charts)
 ├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
@@ -48,14 +49,7 @@ Housing-affordability-spain-project/
 ├── .streamlit/config.toml  # theme configuration
 ├── requirements.txt
 └── README.md
-
-Housing-affordability-spain-project/
-├── app.py                  # Streamlit app (light theme, Plotly charts)
-├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
-├── Notebooks/              # three analysis blocks
-├── .streamlit/config.toml  # theme configuration
-├── requirements.txt
-└── README.md
+```
 
 Processed DataFrames are exported from the notebooks to `Data/` as CSVs prefixed `b1_`, `b2_`,
 `b3_` and loaded in the app via `@st.cache_data`.
