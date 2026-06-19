@@ -138,18 +138,20 @@ def fig_genero():
 
 def fig_capacidad():
     df = load("b1_capacidad.csv")
-    perfiles = {"brecha_acceso_H": ("Hombre", HOMBRE), "brecha_acceso_M": ("Mujer", MUJER),
-                "brecha_acceso_pareja_HM": ("Pareja HM", PAREJA_HM),
-                "brecha_acceso_pareja_MM": ("Pareja MM", PAREJA_MM),
-                "brecha_acceso_pareja_HH": ("Pareja HH", PAREJA_HH)}
+    # (nombre, color, símbolo): círculo para individuales; forma propia por tipo de pareja
+    perfiles = {"brecha_acceso_H": ("Hombre", HOMBRE, "circle"),
+                "brecha_acceso_M": ("Mujer", MUJER, "circle"),
+                "brecha_acceso_pareja_HM": ("Pareja HM", PAREJA_HM, "diamond"),
+                "brecha_acceso_pareja_MM": ("Pareja MM", PAREJA_MM, "square"),
+                "brecha_acceso_pareja_HH": ("Pareja HH", PAREJA_HH, "triangle-up")}
     orden = df.sort_values("precio_medio_compraventa")["comunidad_autonoma"].tolist()
     xmin = float(df[list(perfiles)].min().min())
     fig = go.Figure()
     fig.add_vrect(x0=xmin * 1.05, x1=0, fillcolor=NO_CUBIERTO, opacity=0.06, line_width=0)
-    for col, (name, color) in perfiles.items():
+    for col, (name, color, symbol) in perfiles.items():
         sub = df[["comunidad_autonoma", col]].dropna()
         fig.add_trace(go.Scatter(x=sub[col], y=sub["comunidad_autonoma"], mode="markers",
-                                 marker=dict(color=color, size=11, opacity=0.9), name=name,
+                                 marker=dict(color=color, size=11, opacity=0.9, symbol=symbol), name=name,
                                  hovertemplate=f"%{{y}} · {name}: %{{x:,.0f}} €<extra></extra>"))
     fig.add_vline(x=0, line=dict(color=TEXT, width=1, dash="dash"))
     fig.update_yaxes(categoryorder="array", categoryarray=orden)
