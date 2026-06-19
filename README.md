@@ -5,7 +5,7 @@ access are well calibrated to actual housing market conditions: the **ICO mortga
 (national) and the **Préstec Emancipació** (Catalonia). The analysis is structured across three
 Jupyter notebooks (Block 1–3) and presented as an interactive **Streamlit + Plotly** app.
 
-![Borrowing capacity by region and household profile](assets/screenshot_brecha_acceso.png)
+![Borrowing capacity by region and household profile](assets/capacidad_financiera_CCAA.png)
 
 ## Hypotheses
 
@@ -42,9 +42,8 @@ Convention is consistent across all visualizations and underlying data.
 
 ## Project structure
 Housing-affordability-spain-project/
-
 ├── app.py                  # Streamlit app (light theme, Plotly charts)
-├── Data/                   # raw sources + processed CSVs (b1_, b2_, b3_*)
+├── Data/                   # raw sources + processed CSVs (b1_*, b2_*, b3_*)
 ├── Notebooks/              # three analysis blocks
 ├── .streamlit/config.toml  # theme configuration
 ├── requirements.txt
