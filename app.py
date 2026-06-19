@@ -605,7 +605,7 @@ with tab3:
     k1, k2, k3 = st.columns(3)
     k1.metric("IPC medio (techo HPO)", f"{ipc:.2f} %")
     k2.metric(f"CAGR {provincia} (mercado)", f"{cg.loc[provincia, 'cagr']:.2f} %")
-    k3.metric(f"Brecha {provincia} · 30 a. ({M2_REF} m²)",
+    k3.metric(f"Brecha {provincia} - 30 aaños ({M2_REF} m²)",
               f"{res.loc[provincia, 'brecha_m2'] * M2_REF:,.0f} €")
 
     col_graf_texto(
@@ -619,9 +619,9 @@ with tab3:
     hor_s = st.select_slider("Horizonte (años)", options=[5, 10, 15, 20, 25, 30], value=30, key="b3sens_hor")
     esc = b3_brecha_escenarios(hor_s)
     cA, cB, cC = st.columns(3)
-    cA.metric(f"Escenario bajo · {hor_s} a.", f"{esc['Bajo']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
-    cB.metric(f"Escenario base · {hor_s} a.", f"{esc['Base']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
-    cC.metric(f"Escenario alto · {hor_s} a.", f"{esc['Alto']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    cA.metric(f"Escenario bajo - {hor_s} años", f"{esc['Bajo']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    cB.metric(f"Escenario base - {hor_s} años", f"{esc['Base']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
+    cC.metric(f"Escenario alto - {hor_s} años", f"{esc['Alto']:,.0f} €", f"vivienda {M2_REF} m²", delta_color="off")
     col_graf_texto(
         fig_b3_sensibilidad(hor_s),
         "Para validar el resultado se proyectan tres escenarios de revalorización del mercado "
