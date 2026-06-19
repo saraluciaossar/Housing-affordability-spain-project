@@ -18,19 +18,19 @@ vivienda están calibrados a las condiciones reales del mercado: el **aval ICO**
   permanente genera una brecha patrimonial acumulada que supera el beneficio inicial del
   préstamo de 50.000 € a lo largo de 30 años.
 
-  ## Key findings
+## Principales hallazgos
 
-- **No single applicant** with a median regional salary can afford the complementary mortgage
-  required by the Préstec Emancipació in any Catalan province — only couple profiles clear
-  the €200,000 threshold.
-- **8 out of 19 autonomous communities** show median transaction prices above the ICO price
-  cap, meaning the guarantee fails to cover the most common market price in nearly half the
-  country.
-- **Illes Balears** is the extreme outlier: even two-income couple profiles cannot afford the
-  median property price.
-- **The permanent HPO resale ceiling** generates an accumulated wealth gap of **€232,090**
-  versus free-market appreciation over 30 years in Barcelona (65 m²) — more than four times
-  the initial €50,000 loan benefit.
+- **Ningún perfil individual** con el salario medio de su comunidad puede asumir la hipoteca
+  complementaria del Préstec Emancipació en ninguna provincia catalana — solo las parejas
+  superan el umbral de 200.000 €.
+- **8 de las 19 comunidades autónomas** presentan precios registrales medios por encima del
+  tope ICO, lo que significa que el aval no cubre el precio más habitual del mercado en casi
+  la mitad del país.
+- **Illes Balears** es el caso extremo: incluso los perfiles de pareja con dos ingresos quedan
+  por debajo del precio medio de la vivienda.
+- **El tope de reventa HPO con calificación permanente** genera una brecha patrimonial
+  acumulada de **232.090 €** frente a la revalorización en mercado libre a 30 años en
+  Barcelona (65 m²) — más de cuatro veces el beneficio inicial del préstamo de 50.000 €.
 
 ## Metodología
 
