@@ -376,17 +376,12 @@ with tab_intro:
             "solicitantes sin cargas familiares. Aunque el Préstec acepta ahora hasta 40 años, el análisis "
             "usa los datos salariales del tramo 25–34 años del INE (el tramo con información desagregada y "
             "que representa el perfil objetivo original del programa).\n\n"
-            "**Convención de signo:** brecha **negativa = rojo** (problema), **positiva = verde** (bien)."
-        )
-        st.subheader("Metodología")
-        st.markdown(
-            "- **Capacidad de endeudamiento:** modelo hipotecario estándar — tipo 3,25 %, plazo 25 años, "
-            "tasa de esfuerzo máx. 35 % sobre ingreso neto (Banco de España), factor neto 0,78. Las parejas "
-            "asumen dos salarios medios a tiempo completo (escenario optimista).\n"
-            "- **Proyección a 30 años (Bloque 3):** CAGR histórica provincial 2013-2024 como revalorización "
-            "del mercado libre; IPC medio histórico como techo HPO. Determinista, con sensibilidad ±1 pp.\n"
-            "- **Limitación:** los precios son medias por CCAA/provincia, sin distribución ni percentiles → "
-            "la brecha real en mercados tensionados puede estar subestimada."
+            "**Limitaciones:** Los precios utilizados son medias provinciales y autonómicas. En mercados "
+            "tensionados, el precio al que realmente accede un comprador joven es probablemente superior a "
+            "esa media, por lo que las brechas pueden estar subestimadas. Los salarios del INE son medias "
+            "brutas anuales y no reflejan situaciones de empleo a tiempo parcial o temporal, más frecuentes "
+            "en el tramo 25–34 años. La proyección a 30 años asume que el CAGR histórico 2013–2024 se "
+            "mantiene constante — es un modelo determinista, no una previsión."
         )
         st.subheader("Fuentes")
         st.markdown(
