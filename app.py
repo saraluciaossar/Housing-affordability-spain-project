@@ -81,6 +81,7 @@ def fig_lollipop_ico(year):
                   (CUBIERTO, "El tope ICO cubre el precio (brecha > 0)", "circle")])
     fig.update_layout(xaxis_title="Brecha en € (tope ICO − precio medio)",
                       legend=dict(orientation="h", y=-0.14, x=0))
+    fig.update_xaxes(range=[-130000, 155000])
     return style_fig(fig, height=560)
 
 
@@ -295,7 +296,7 @@ def fig_b3_curva(provincia, horizonte):
                              hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
     fig.update_layout(xaxis_title="Años desde la compra", yaxis_title="€/m²",
                       legend=dict(orientation="h", y=-0.16, x=0))
-    fig.update_yaxes(ticksuffix=" €")
+    fig.update_yaxes(ticksuffix=" €", range=[1200, 9000])
     return style_fig(fig, height=470)
 
 
@@ -602,11 +603,14 @@ with tab3:
     provincia = c_prov.selectbox("Provincia", ["Barcelona", "Girona", "Tarragona", "Lleida"], key="b3prov")
     horizonte = c_hor.select_slider("Horizonte (años)", options=[5, 10, 15, 20, 25, 30], value=30, key="b3hor")
 
-    k1, k2, k3 = st.columns(3)
+    proy = load("b3_proyecciones.csv")
+    brecha_h = proy[(proy["provincia"] == provincia)
+                    & (proy["año_proyeccion"] == horizonte)]["brecha_m2"].values[0]
+    k1, k2, k3, k4 = st.columns(4)
     k1.metric("IPC medio (techo HPO)", f"{ipc:.2f} %")
     k2.metric(f"CAGR {provincia} (mercado)", f"{cg.loc[provincia, 'cagr']:.2f} %")
-    k3.metric(f"Brecha {provincia} - 30 años ({M2_REF} m²)",
-              f"{res.loc[provincia, 'brecha_m2'] * M2_REF:,.0f} €")
+    k3.metric(f"Brecha mercado − HPO · año {horizonte}", f"{brecha_h:,.0f} €/m²")
+    k4.metric(f"Brecha total acumulada - {horizonte} años ({M2_REF} m²)", f"{brecha_h * M2_REF:,.0f} €")
 
     col_graf_texto(
         fig_b3_curva(provincia, horizonte),
