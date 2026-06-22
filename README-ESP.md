@@ -1,4 +1,4 @@
-# Acceso a la vivienda en España — ¿Están bien calibrados los programas públicos de primera vivienda?
+# Acceso a la vivienda en España: ¿Están bien calibrados los programas públicos de primera vivienda?
 
 Proyecto de análisis de datos que evalúa si dos programas públicos de acceso a la primera
 vivienda están calibrados a las condiciones reales del mercado: el **aval ICO** (nacional) y el
