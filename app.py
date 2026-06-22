@@ -266,7 +266,8 @@ def fig_b2_dispersion():
                                  text=[f"{d['comarca_minimo']} ({d['precio_minimo']:,.0f} €/m²)".replace(",", ".")],
                                  textposition="top center", textfont=dict(size=10, color=TEXT), showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_minimo']} (más barata): %{{x:,.0f}} €/m²<extra></extra>"))
-        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers+text", marker=dict(color=PROV[p], size=9),
+        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers+text",
+                                 marker=dict(color=PROV[p], size=13, opacity=0.45),
                                  text=[f"{d['comarca_maximo']} ({d['precio_maximo']:,.0f} €/m²)".replace(",", ".")],
                                  textposition="top center", textfont=dict(size=10, color=TEXT), showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): %{{x:,.0f}} €/m²<extra></extra>"))
@@ -274,9 +275,9 @@ def fig_b2_dispersion():
                                  marker=dict(color="white", size=10, line=dict(color=PROV[p], width=2)),
                                  hovertemplate=f"{p} · media provincial: %{{x:,.0f}} €/m²<extra></extra>"))
     fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=13),
-                             name="Comarca más barata (mín)"))
-    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=9),
-                             name="Comarca más cara (máx)"))
+                             name="Comarca más barata · mínimo"))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=13, opacity=0.45),
+                             name="Comarca más cara · máximo"))
     fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
                              marker=dict(color="white", size=10, line=dict(color=MERCADO, width=2)),
                              name="Media provincial"))
@@ -476,7 +477,7 @@ with tab1:
         "máxima × factor de descuento del préstamo. Para las parejas se suman los dos salarios medios del "
         "tramo 25–34 años (escenario optimista: ambas personas a tiempo completo, sin deudas ni hijos/as a cargo)."
     )
-    st.markdown("##### Capacidad financiera por CCAA y perfil (2024)")
+    st.markdown("##### Brecha de acceso hipotecario por CCAA y perfil (2024)")
     col_graf_texto(
         fig_capacidad(),
         "La brecha de acceso mide la diferencia entre la hipoteca máxima que puede financiar cada perfil "
@@ -526,7 +527,7 @@ with tab2:
         "programa, efecto muy distinto según dónde se compre.", key="b2precio")
     st.divider()
 
-    st.markdown("##### El tope del Préstec (250.000 €) no compra lo mismo en todas las comarcas")
+    st.markdown("##### El tope del Préstec (250.000 €) no compra los mismos m² en todas las comarcas")
     col_graf_texto(
         fig_b2_m2_comarca(),
         "Con el mismo tope, la superficie comprable varía enormemente dentro de cada provincia. En "
@@ -538,13 +539,10 @@ with tab2:
     st.markdown("##### Rango de precio €/m² por provincia: comarca más barata y más cara")
     ev = col_graf_texto(
         fig_b2_dispersion(),
-        "Dentro de cada provincia el precio del m² varía mucho entre comarcas. El punto sólido marca la "
-        "comarca más barata (mínimo), el punto claro la más cara (máximo) y el punto hueco la media "
-        "provincial.\n\n"
-        "**Barcelona** presenta la mayor dispersión: entre Lluçanès y Barcelonès hay más de 2.700 €/m² de "
-        "diferencia. Perfiles que superan el umbral provincial pueden encontrar barreras reales en las "
-        "comarcas más caras. Lleida y Tarragona muestran menor dispersión interna.\n\n"
-        "Pasa el cursor sobre los puntos para ver el nombre de la comarca y su precio €/m².",
+        "Dentro de cada provincia, el precio del m² varía considerablemente entre comarcas. El punto oscuro "
+        "indica la comarca con el precio mínimo, el punto claro la comarca con el precio máximo, y el círculo "
+        "hueco la media provincial. Barcelona presenta la mayor dispersión: entre Lluçanès y Barcelonès hay "
+        "más de 2.700 €/m² de diferencia.",
         key="b2disp", on_select=True)
     sel = selected_y(ev)
     if sel:
