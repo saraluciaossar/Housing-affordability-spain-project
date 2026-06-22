@@ -203,7 +203,7 @@ def fig_b2_m2_comarca():
         fig.add_trace(go.Scatter(x=[m2_menos, m2_mas], y=[p, p], mode="lines",
                                  line=dict(color=PROV[p], width=3), showlegend=False, hoverinfo="skip"))
         fig.add_trace(go.Scatter(x=[m2_menos], y=[p], mode="markers+text",
-                                 marker=dict(color=PROV[p], size=14, opacity=0.4),
+                                 marker=dict(color=PROV[p], size=14),
                                  text=[f"{d['comarca_maximo']} ({m2_menos:.0f} m²)"], textposition="top center",
                                  textfont=dict(size=10, color=TEXT), showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): {m2_menos:.0f} m²<extra></extra>"))
@@ -217,7 +217,7 @@ def fig_b2_m2_comarca():
                                  showlegend=False, hovertemplate=f"{p} · media provincial: {media:.0f} m²<extra></extra>"))
     fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=14),
                              name="Comarca más barata (más m²)"))
-    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=14, opacity=0.4),
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(color=MERCADO, size=14),
                              name="Comarca más cara (menos m²)"))
     fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
                              marker=dict(symbol="line-ns", color=TEXT, size=14, line=dict(width=2, color=TEXT)),
