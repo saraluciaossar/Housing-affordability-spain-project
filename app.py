@@ -65,8 +65,9 @@ def leyenda(fig, items):
 
 # ============================== BLOQUE 1 ==============================
 def fig_lollipop_ico(year):
-    df = load("b1_brecha_ico.csv")
-    df = df[df["año"] == year].sort_values("brecha_ico")
+    df_all = load("b1_brecha_ico.csv")
+    orden = df_all[df_all["año"] == 2024].sort_values("brecha_ico")["comunidad_autonoma"].tolist()
+    df = df_all[df_all["año"] == year]
     fig = go.Figure()
     for _, r in df.iterrows():
         color = NO_CUBIERTO if r["brecha_ico"] < 0 else CUBIERTO
@@ -81,6 +82,7 @@ def fig_lollipop_ico(year):
                   (CUBIERTO, "El tope ICO cubre el precio (brecha > 0)", "circle")])
     fig.update_layout(xaxis_title="Brecha en € (tope ICO − precio medio)",
                       legend=dict(orientation="h", y=-0.14, x=0))
+    fig.update_yaxes(categoryorder="array", categoryarray=orden)
     fig.update_xaxes(range=[-130000, 155000])
     return style_fig(fig, height=560)
 
@@ -296,7 +298,7 @@ def fig_b3_curva(provincia, horizonte):
                              hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
     fig.update_layout(xaxis_title="Años desde la compra", yaxis_title="€/m²",
                       legend=dict(orientation="h", y=-0.16, x=0))
-    fig.update_yaxes(ticksuffix=" €", range=[1200, 9000])
+    fig.update_yaxes(ticksuffix=" €", range=[1000, 9000])
     return style_fig(fig, height=470)
 
 
