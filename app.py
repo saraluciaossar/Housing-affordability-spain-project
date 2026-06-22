@@ -83,7 +83,7 @@ def fig_lollipop_ico(year):
     fig.update_layout(xaxis_title="Brecha en € (tope ICO − precio medio)",
                       legend=dict(orientation="h", y=-0.14, x=0))
     fig.update_yaxes(categoryorder="array", categoryarray=orden)
-    fig.update_xaxes(range=[-130000, 155000])
+    fig.update_xaxes(range=[-150000, 200000])
     return style_fig(fig, height=560)
 
 
