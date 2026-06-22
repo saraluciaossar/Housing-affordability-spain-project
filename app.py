@@ -262,11 +262,13 @@ def fig_b2_dispersion():
         media = prov.loc[prov["territorio"] == p, "precio_m2_2024"].values[0]
         fig.add_trace(go.Scatter(x=[d["precio_minimo"], d["precio_maximo"]], y=[p, p], mode="lines",
                                  line=dict(color=PROV[p], width=3), showlegend=False, hoverinfo="skip"))
-        fig.add_trace(go.Scatter(x=[d["precio_minimo"]], y=[p], mode="markers", marker=dict(color=PROV[p], size=13),
-                                 showlegend=False,
+        fig.add_trace(go.Scatter(x=[d["precio_minimo"]], y=[p], mode="markers+text", marker=dict(color=PROV[p], size=13),
+                                 text=[f"{d['comarca_minimo']} ({d['precio_minimo']:,.0f} €/m²)".replace(",", ".")],
+                                 textposition="top center", textfont=dict(size=10, color=TEXT), showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_minimo']} (más barata): %{{x:,.0f}} €/m²<extra></extra>"))
-        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers", marker=dict(color=PROV[p], size=9),
-                                 showlegend=False,
+        fig.add_trace(go.Scatter(x=[d["precio_maximo"]], y=[p], mode="markers+text", marker=dict(color=PROV[p], size=9),
+                                 text=[f"{d['comarca_maximo']} ({d['precio_maximo']:,.0f} €/m²)".replace(",", ".")],
+                                 textposition="top center", textfont=dict(size=10, color=TEXT), showlegend=False,
                                  hovertemplate=f"{p} · {d['comarca_maximo']} (más cara): %{{x:,.0f}} €/m²<extra></extra>"))
         fig.add_trace(go.Scatter(x=[media], y=[p], mode="markers", showlegend=False,
                                  marker=dict(color="white", size=10, line=dict(color=PROV[p], width=2)),
@@ -369,11 +371,11 @@ with tab_intro:
             "**¿Qué es la HPO?** La *calificació permanent d'Habitatge amb Protecció Oficial (HPO)* es una figura jurídica catalana que limita el "
             "precio máximo de reventa de la vivienda al IPC histórico, con el objetivo de mantener el stock de "
             "vivienda asequible. A diferencia de otras calificaciones temporales, esta no caduca.\n\n"
-            "**Alcance de este proyecto:** se estudian ambos programas en su configuración principal: el aval "
-            "ICO para jóvenes menores de 35 años, y el Préstec tal como se diseñó originalmente para ese mismo "
-            "perfil. Aunque el Préstec acepta ahora hasta 40 años, el análisis usa los datos salariales del "
-            "tramo 25–34 años del INE — el tramo con información desagregada y que representa el perfil "
-            "objetivo original del programa.\n\n"
+            "**Alcance de este proyecto:** se estudian ambos programas para el perfil de persona joven menor "
+            "de 35 años sin hijos, que es el límite de edad que los propios programas establecen para "
+            "solicitantes sin cargas familiares. Aunque el Préstec acepta ahora hasta 40 años, el análisis "
+            "usa los datos salariales del tramo 25–34 años del INE (el tramo con información desagregada y "
+            "que representa el perfil objetivo original del programa).\n\n"
             "**Convención de signo:** brecha **negativa = rojo** (problema), **positiva = verde** (bien)."
         )
         st.subheader("Metodología")
@@ -466,7 +468,7 @@ with tab1:
         "sobre ingresos netos (criterio del Banco de España). El salario bruto se convierte a neto aplicando "
         "un factor de 0,78. La hipoteca máxima financiable resulta de la fórmula de anualidad: cuota mensual "
         "máxima × factor de descuento del préstamo. Para las parejas se suman los dos salarios medios del "
-        "tramo 25–34 años (escenario optimista: ambos a tiempo completo)."
+        "tramo 25–34 años (escenario optimista: ambas personas a tiempo completo, sin deudas ni hijos/as a cargo)."
     )
     st.markdown("##### Capacidad financiera por CCAA y perfil (2024)")
     col_graf_texto(
