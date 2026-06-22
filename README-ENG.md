@@ -5,6 +5,8 @@ access are well calibrated to actual housing market conditions: the **ICO mortga
 (national) and the **Préstec Emancipació** (Catalonia). The analysis is structured across three
 Jupyter notebooks (Block 1–3) and presented as an interactive **Streamlit + Plotly** app.
 
+🔗 [Live app](https://housing-affordability-spain-project-8lhprtpnjykcfkz6f6lppc.streamlit.app/)
+
 ![Borrowing capacity by region and household profile](assets/capacidad_financiera_CCAA.png)
 
 ## Hypotheses
