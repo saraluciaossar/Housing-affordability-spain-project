@@ -324,7 +324,7 @@ def fig_b3_sensibilidad(horizonte):
                                  hovertemplate="Año %{x}: %{y:,.0f} €/m²<extra></extra>"))
     fig.update_layout(xaxis_title="Años desde la compra", yaxis_title="€/m²",
                       legend=dict(orientation="h", y=-0.18, x=0))
-    fig.update_yaxes(ticksuffix=" €")
+    fig.update_yaxes(ticksuffix=" €", range=[2500, 12000])
     return style_fig(fig, height=520)
 
 
@@ -370,18 +370,24 @@ with tab_intro:
             "🔗 [ICF Habitatge Emancipació](https://www.icf.cat/es/prestecs/habitatge/icf-habitatge-emancipacio)\n\n"
             "**¿Qué es la HPO?** La *calificació permanent d'Habitatge amb Protecció Oficial (HPO)* es una figura jurídica catalana que limita el "
             "precio máximo de reventa de la vivienda al IPC histórico, con el objetivo de mantener el stock de "
-            "vivienda asequible. A diferencia de otras calificaciones temporales, esta no caduca.\n\n"
-            "**Alcance de este proyecto:** se estudian ambos programas para el perfil de persona joven menor "
-            "de 35 años sin hijos, que es el límite de edad que los propios programas establecen para "
-            "solicitantes sin cargas familiares. Aunque el Préstec acepta ahora hasta 40 años, el análisis "
-            "usa los datos salariales del tramo 25–34 años del INE (el tramo con información desagregada y "
-            "que representa el perfil objetivo original del programa).\n\n"
-            "**Limitaciones:** Los precios utilizados son medias provinciales y autonómicas. En mercados "
-            "tensionados, el precio al que realmente accede un comprador joven es probablemente superior a "
-            "esa media, por lo que las brechas pueden estar subestimadas. Los salarios del INE son medias "
-            "brutas anuales y no reflejan situaciones de empleo a tiempo parcial o temporal, más frecuentes "
-            "en el tramo 25–34 años. La proyección a 30 años asume que el CAGR histórico 2013–2024 se "
-            "mantiene constante — es un modelo determinista, no una previsión."
+            "vivienda asequible. A diferencia de otras calificaciones temporales, esta no caduca."
+        )
+        st.subheader("Alcance de este proyecto")
+        st.markdown(
+            "Se estudian ambos programas para el perfil de persona joven menor de 35 años sin hijos, que es "
+            "el límite de edad que los propios programas establecen para solicitantes sin cargas familiares. "
+            "Aunque el Préstec acepta ahora hasta 40 años, el análisis usa los datos salariales del tramo "
+            "25–34 años del INE (el tramo con información desagregada y que representa el perfil objetivo "
+            "original del programa)."
+        )
+        st.subheader("Limitaciones")
+        st.markdown(
+            "Los precios utilizados son medias provinciales y autonómicas. En mercados tensionados, el precio "
+            "al que realmente accede un comprador joven es probablemente superior a esa media, por lo que las "
+            "brechas pueden estar subestimadas. Los salarios del INE son medias brutas anuales y no reflejan "
+            "situaciones de empleo a tiempo parcial o temporal, más frecuentes en el tramo 25–34 años. La "
+            "proyección a 30 años asume que el CAGR histórico 2013–2024 se mantiene constante — es un modelo "
+            "determinista, no una previsión."
         )
         st.subheader("Fuentes")
         st.markdown(
