@@ -412,6 +412,11 @@ with tab1:
     m1.metric(f"CCAA donde el tope no cubre ({año})", f"{int((bsel['brecha_ico'] < 0).sum())} de {len(bsel)}")
     m2.metric(f"Mayor brecha negativa · {peor['comunidad_autonoma']}", f"{peor['brecha_ico']:,.0f} €",
               f"{pct:.0f} % por encima del tope ICO", delta_color="inverse")
+    st.markdown(
+        "El aval ICO establece un precio máximo de compra de **225.000 €** para viviendas en general, "
+        "ampliado a **300.000 €** en zonas de mercado tensionado. Los gráficos muestran si el precio medio "
+        "registrado en cada comunidad autónoma queda por debajo o por encima de ese límite."
+    )
     st.divider()
 
     st.markdown("##### Brecha entre tope ICO y precio medio por CCAA")
