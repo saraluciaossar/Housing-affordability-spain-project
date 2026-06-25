@@ -1,9 +1,11 @@
-# Acceso a la vivienda en España — ¿Están bien calibrados los programas públicos de primera vivienda?
+# Acceso a la vivienda en España: ¿Están bien calibrados los programas públicos de primera vivienda?
 
 Proyecto de análisis de datos que evalúa si dos programas públicos de acceso a la primera
 vivienda están calibrados a las condiciones reales del mercado: el **aval ICO** (nacional) y el
 **Préstec Emancipació** (Cataluña). El análisis se estructura en tres Jupyter notebooks
 (Bloque 1–3) y se presenta como una aplicación interactiva en **Streamlit + Plotly**.
+
+🔗 [Aplicación interactiva](https://housing-affordability-spain-project-8lhprtpnjykcfkz6f6lppc.streamlit.app/)
 
 ![Capacidad financiera por CCAA y perfil de hogar](assets/capacidad_financiera_CCAA.png)
 
